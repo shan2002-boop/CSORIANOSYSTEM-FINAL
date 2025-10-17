@@ -1,14 +1,14 @@
 // src/components/ProjectList.jsx
-import React, { useEffect, useState, useContext } from "react";
-import axios from "axios";
-import Navbar from "../components/Navbar";
-import { AuthContext } from "../context/AuthContext";
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
-import sorianoLogo from "../assets/sorianoLogo.jpg";
-import AlertModal from "../components/AlertModal";
-import ChatComponent from "../components/ChatComponent";
-import { uploadToCloudinary } from "../hooks/useCloudinary";
+import React, { useEffect, useState, useContext } from 'react';
+import axios from 'axios';
+import Navbar from '../components/Navbar';
+import { AuthContext } from '../context/AuthContext';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import sorianoLogo from '../assets/sorianoLogo.jpg';
+import AlertModal from '../components/AlertModal';
+import ChatComponent from '../components/ChatComponent';
+import { uploadToCloudinary } from '../hooks/useCloudinary';
 import {
   Box,
   Button,
@@ -38,7 +38,7 @@ import {
   FormHelperText,
   Checkbox,
   FormControlLabel,
-} from "@mui/material";
+} from '@mui/material';
 import {
   PlayArrow as PlayArrowIcon,
   Edit as EditIcon,
@@ -49,22 +49,22 @@ import {
   ExpandMore as ExpandMoreIcon,
   Close as CloseIcon,
   Add as AddIcon,
-} from "@mui/icons-material";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import GeneratorModal from "../components/GeneratorModal";
-import { Close, SwapHoriz } from "@mui/icons-material";
+} from '@mui/icons-material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import GeneratorModal from '../components/GeneratorModal';
+import { Close, SwapHoriz } from '@mui/icons-material';
 
 const Notification = ({ message, onClose }) => (
   <div
     style={{
-      position: "fixed",
-      bottom: "20px",
-      right: "20px",
-      backgroundColor: "#f44336",
-      color: "white",
-      padding: "10px 20px",
-      borderRadius: "5px",
-      boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+      position: 'fixed',
+      bottom: '20px',
+      right: '20px',
+      backgroundColor: '#f44336',
+      color: 'white',
+      padding: '10px 20px',
+      borderRadius: '5px',
+      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
       zIndex: 9999,
     }}
     onClick={onClose}
@@ -106,7 +106,7 @@ const MaterialSearchModal = ({
 }) => {
   const [materials, setMaterials] = useState([]);
   const [filteredMaterials, setFilteredMaterials] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     if (isOpen && user && user.token) {
@@ -121,17 +121,17 @@ const MaterialSearchModal = ({
           setFilteredMaterials(response.data);
         })
         .catch((error) => {
-          console.error("Error fetching materials:", error);
+          console.error('Error fetching materials:', error);
         });
     }
   }, [isOpen, user]);
 
   useEffect(() => {
-    if (searchTerm === "") {
+    if (searchTerm === '') {
       setFilteredMaterials(materials);
     } else {
       const filtered = materials.filter((material) =>
-        (material.description || "")
+        (material.description || '')
           .toLowerCase()
           .includes(searchTerm.toLowerCase())
       );
@@ -143,11 +143,11 @@ const MaterialSearchModal = ({
     <Dialog open={isOpen} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>
         {materialToReplace
-          ? `Replace Material: ${materialToReplace?.description || ""}`
-          : "Select Material"}
+          ? `Replace Material: ${materialToReplace?.description || ''}`
+          : 'Select Material'}
         <IconButton
           onClick={onClose}
-          style={{ position: "absolute", right: 8, top: 8 }}
+          style={{ position: 'absolute', right: 8, top: 8 }}
         >
           <Close />
         </IconButton>
@@ -188,11 +188,11 @@ const MaterialSearchModal = ({
                 {filteredMaterials.map((material) => (
                   <TableRow key={material._id} hover>
                     <TableCell>
-                      {material.description || "No Description Available"}
+                      {material.description || 'No Description Available'}
                     </TableCell>
-                    <TableCell>{material.unit || "N/A"}</TableCell>
-                    <TableCell>{material.cost?.toFixed(2) || "0.00"}</TableCell>
-                    <TableCell>{material.specifications || "N/A"}</TableCell>
+                    <TableCell>{material.unit || 'N/A'}</TableCell>
+                    <TableCell>{material.cost?.toFixed(2) || '0.00'}</TableCell>
+                    <TableCell>{material.specifications || 'N/A'}</TableCell>
                     <TableCell align="center">
                       <Button
                         variant="contained"
@@ -225,13 +225,13 @@ const ProjectList = () => {
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newProject, setNewProject] = useState({
-    name: "",
-    user: "",
+    name: '',
+    user: '',
     numFloors: 1,
     floors: [],
-    template: "",
-    timeline: { duration: 0, unit: "months" },
-    location: "",
+    template: '',
+    timeline: { duration: 0, unit: 'months' },
+    location: '',
     totalArea: 0,
     avgFloorHeight: 0,
     roomCount: 1,
@@ -240,9 +240,9 @@ const ProjectList = () => {
 
   const [createLoading, setCreateLoading] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const [alertTitle, setAlertTitle] = useState("");
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertType, setAlertType] = useState("info"); // Default type
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState('info'); // Default type
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editProjectId, setEditProjectId] = useState(null);
@@ -251,14 +251,14 @@ const ProjectList = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [users, setUsers] = useState([]);
   const [locations, setLocations] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const { user } = useContext(AuthContext);
-  const [heightError, setHeightError] = useState("");
-  const [floorError, setFloorError] = useState("");
-  const [roomCountError, setRoomCountError] = useState("");
-  const [foundationDepthError, setFoundationDepthError] = useState("");
+  const [heightError, setHeightError] = useState('');
+  const [floorError, setFloorError] = useState('');
+  const [roomCountError, setRoomCountError] = useState('');
+  const [foundationDepthError, setFoundationDepthError] = useState('');
   const [templates, setTemplates] = useState([]);
-  const [totalAreaError, setTotalAreaError] = useState("");
+  const [totalAreaError, setTotalAreaError] = useState('');
   const [expandedSections, setExpandedSections] = useState({
     timeline: false,
     projectDates: false,
@@ -281,31 +281,31 @@ const ProjectList = () => {
   // BOM
   const [generatorModalOpen, setGeneratorModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    totalArea: "",
-    avgFloorHeight: "",
-    selectedTemplateId: "",
-    numFloors: "",
-    roomCount: "",
-    foundationDepth: "",
+    totalArea: '',
+    avgFloorHeight: '',
+    selectedTemplateId: '',
+    numFloors: '',
+    roomCount: '',
+    foundationDepth: '',
   });
   const [errors, setErrors] = useState({});
   const [bom, setBom] = useState(null);
-  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState('');
   const [isLoadingBOM, setIsLoadingBOM] = useState(false);
   const [selectedProjectForBOM, setSelectedProjectForBOM] = useState(null);
 
   // Add Material States
   const [addMaterialModalOpen, setAddMaterialModalOpen] = useState(false);
   const [newMaterial, setNewMaterial] = useState({
-    description: "",
-    unit: "",
-    cost: "",
-    specifications: "",
-    supplier: "",
-    brand: "",
+    description: '',
+    unit: '',
+    cost: '',
+    specifications: '',
+    supplier: '',
+    brand: '',
   });
 
-  console.log("BOM State:", bom);
+  console.log('BOM State:', bom);
 
   const handleReplaceClick = (material) => {
     setMaterialToReplace(material);
@@ -366,7 +366,7 @@ const ProjectList = () => {
 
       // Close the material replacement modal and show success alert
       setMaterialModalOpen(false);
-      showAlert("Success", "Material granted successfully.", "success");
+      showAlert('Success', 'Material granted successfully.', 'success');
     }
   };
 
@@ -396,39 +396,39 @@ const ProjectList = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     const updatedFormData = { ...formData };
-    if (name === "numFloors" && value > 5) {
+    if (name === 'numFloors' && value > 5) {
       updatedFormData[name] = 5;
       setErrors({
         ...errors,
-        numFloors: "Maximum allowed floors is 5. Resetting to 5.",
+        numFloors: 'Maximum allowed floors is 5. Resetting to 5.',
       });
       showAlert(
-        "Validation Error",
-        "Maximum allowed floors is 5. Resetting to 5.",
-        "error"
+        'Validation Error',
+        'Maximum allowed floors is 5. Resetting to 5.',
+        'error'
       );
-    } else if (name === "avgFloorHeight") {
+    } else if (name === 'avgFloorHeight') {
       if (value > 15) {
         updatedFormData[name] = 15;
         setErrors({
           ...errors,
-          avgFloorHeight: "Maximum floor height is 15 meters. Resetting to 15.",
+          avgFloorHeight: 'Maximum floor height is 15 meters. Resetting to 15.',
         });
         showAlert(
-          "Validation Error",
-          "Maximum floor height is 15 meters. Resetting to 15.",
-          "error"
+          'Validation Error',
+          'Maximum floor height is 15 meters. Resetting to 15.',
+          'error'
         );
       } else if (value < 0) {
         updatedFormData[name] = 0;
         setErrors({
           ...errors,
-          avgFloorHeight: "Floor height cannot be negative. Resetting to 0.",
+          avgFloorHeight: 'Floor height cannot be negative. Resetting to 0.',
         });
         showAlert(
-          "Validation Error",
-          "Floor height cannot be negative. Resetting to 0.",
-          "error"
+          'Validation Error',
+          'Floor height cannot be negative. Resetting to 0.',
+          'error'
         );
       } else {
         updatedFormData[name] = value;
@@ -442,26 +442,26 @@ const ProjectList = () => {
   const validateForm = () => {
     const newErrors = {};
     const requiredFields = [
-      "totalArea",
-      "avgFloorHeight",
-      "roomCount",
-      "foundationDepth",
+      'totalArea',
+      'avgFloorHeight',
+      'roomCount',
+      'foundationDepth',
     ];
     requiredFields.forEach(
       (field) =>
-        !formData[field] && (newErrors[field] = "This field is required")
+        !formData[field] && (newErrors[field] = 'This field is required')
     );
     if (!selectedLocation) {
-      newErrors.location = "Please select a location";
-      showAlert("Validation Error", "Please select a location.", "error");
+      newErrors.location = 'Please select a location';
+      showAlert('Validation Error', 'Please select a location.', 'error');
     }
     if (!formData.numFloors) {
-      newErrors.numFloors = "This field is required";
-      showAlert("Validation Error", "Number of floors is required.", "error");
+      newErrors.numFloors = 'This field is required';
+      showAlert('Validation Error', 'Number of floors is required.', 'error');
     }
     if (!formData.selectedTemplateId) {
-      newErrors.selectedTemplateId = "Please select a template";
-      showAlert("Validation Error", "Please select a template.", "error");
+      newErrors.selectedTemplateId = 'Please select a template';
+      showAlert('Validation Error', 'Please select a template.', 'error');
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -487,29 +487,28 @@ const ProjectList = () => {
         .then((response) => {
           setBom(response.data.bom);
           setGeneratorModalOpen(false);
-          showAlert("Success", "BOM generated successfully.", "success");
+          showAlert('Success', 'BOM generated successfully.', 'success');
         })
         .catch((error) => {
-          console.error("Error generating BOM:", error);
+          console.error('Error generating BOM:', error);
           showAlert(
-            "Error",
-            error.response?.data?.error || "An unexpected error occurred.",
-            "error"
+            'Error',
+            error.response?.data?.error || 'An unexpected error occurred.',
+            'error'
           );
         })
         .finally(() => setIsLoadingBOM(false));
     }
   };
 
-  const handleGenerateBOMPDF = (version = "client") => {
-    if (!bom) return;
+  const handleGenerateBOMPDF = (version = 'client') => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
     let yPosition = 20;
 
     doc.addImage(
       sorianoLogo,
-      "JPEG",
+      'JPEG',
       20,
       10,
       pageWidth - 40,
@@ -517,33 +516,29 @@ const ProjectList = () => {
     );
     yPosition += 30;
     doc.setFontSize(15);
-    doc.text("Generated BOM", pageWidth / 2, yPosition, { align: "center" });
+    doc.text('Generated BOM', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 10;
+    doc.text(`Project: ${selectedProject.bom.name || 'Custom'}`, 10, yPosition);
+    yPosition += 10;
+    doc.text(`Total Area: ${selectedProject.bom.totalArea} sqm`, 10, yPosition);
     yPosition += 10;
     doc.text(
-      `Project: ${selectedProjectForBOM?.name || "Custom"}`,
+      `Number of Floors: ${selectedProject.bom.numFloors}`,
       10,
       yPosition
     );
     yPosition += 10;
-    doc.text(`Total Area: ${bom.projectDetails.totalArea} sqm`, 10, yPosition);
-    yPosition += 10;
     doc.text(
-      `Number of Floors: ${bom.projectDetails.numFloors}`,
-      10,
-      yPosition
-    );
-    yPosition += 10;
-    doc.text(
-      `Floor Height: ${bom.projectDetails.avgFloorHeight} meters`,
+      `Floor Height: ${selectedProject.bom.avgFloorHeight} meters`,
       10,
       yPosition
     );
     yPosition += 10;
 
-    if (version === "client") {
+    if (version === 'client') {
       // Formatting the Grand Total text
       doc.text(
-        `Grand Total: PHP ${new Intl.NumberFormat("en-PH", {
+        `Grand Total: PHP ${new Intl.NumberFormat('en-PH', {
           minimumFractionDigits: 2,
         }).format(
           Math.ceil(bom.markedUpCosts.totalProjectCost * 100) / 100 || 0
@@ -563,25 +558,25 @@ const ProjectList = () => {
         doc.autoTable({
           head: [
             [
-              "Item",
-              "Description",
-              "Quantity",
-              "Unit",
-              "Unit Cost (PHP)",
-              "Total Amount (PHP)",
+              'Item',
+              'Description',
+              'Quantity',
+              'Unit',
+              'Unit Cost (PHP)',
+              'Total Amount (PHP)',
             ],
           ],
           body: cat.materials.map((material, index) => [
             `${categoryIndex + 1}.${index + 1}`, // Item number
-            material.description || "N/A", // Description
-            material.quantity ? Math.ceil(material.quantity) : "N/A", // Rounded-up Quantity
-            material.unit || "N/A", // Unit
-            `PHP ${new Intl.NumberFormat("en-PH", {
-              style: "decimal",
+            material.description || 'N/A', // Description
+            material.quantity ? Math.ceil(material.quantity) : 'N/A', // Rounded-up Quantity
+            material.unit || 'N/A', // Unit
+            `PHP ${new Intl.NumberFormat('en-PH', {
+              style: 'decimal',
               minimumFractionDigits: 2,
             }).format(material.cost)}`, // Unit Cost
-            `PHP ${new Intl.NumberFormat("en-PH", {
-              style: "decimal",
+            `PHP ${new Intl.NumberFormat('en-PH', {
+              style: 'decimal',
               minimumFractionDigits: 2,
             }).format(Math.ceil(material.totalAmount * 100) / 100 || 0)}`,
           ]),
@@ -595,34 +590,34 @@ const ProjectList = () => {
       });
     } else {
       // Contractor-specific details
-      const originalProjectCost = `PHP ${new Intl.NumberFormat("en-PH", {
-        style: "decimal",
+      const originalProjectCost = `PHP ${new Intl.NumberFormat('en-PH', {
+        style: 'decimal',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(Math.ceil(bom.originalCosts.totalProjectCost * 100) / 100)}`;
 
-      const originalLaborCost = `PHP ${new Intl.NumberFormat("en-PH", {
-        style: "decimal",
+      const originalLaborCost = `PHP ${new Intl.NumberFormat('en-PH', {
+        style: 'decimal',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(Math.ceil(bom.originalCosts.laborCost * 100) / 100)}`;
 
       const markup = bom.projectDetails.location.markup;
 
-      const markedUpProjectCost = `PHP ${new Intl.NumberFormat("en-PH", {
-        style: "decimal",
+      const markedUpProjectCost = `PHP ${new Intl.NumberFormat('en-PH', {
+        style: 'decimal',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(Math.ceil(bom.markedUpCosts.totalProjectCost * 100) / 100)}`;
 
-      const markedUpLaborCost = `PHP ${new Intl.NumberFormat("en-PH", {
-        style: "decimal",
+      const markedUpLaborCost = `PHP ${new Intl.NumberFormat('en-PH', {
+        style: 'decimal',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(Math.ceil(bom.markedUpCosts.laborCost * 100) / 100)}`;
 
       doc.setFontSize(15);
-      doc.text("Design Engineer Cost Breakdown", 10, yPosition);
+      doc.text('Design Engineer Cost Breakdown', 10, yPosition);
       yPosition += 10;
       doc.setFontSize(15);
       doc.text(
@@ -657,25 +652,25 @@ const ProjectList = () => {
         doc.autoTable({
           head: [
             [
-              "Item",
-              "Description",
-              "Quantity",
-              "Unit",
-              "Unit Cost (PHP)",
-              "Total Amount (PHP)",
+              'Item',
+              'Description',
+              'Quantity',
+              'Unit',
+              'Unit Cost (PHP)',
+              'Total Amount (PHP)',
             ],
           ],
           body: category.materials.map((material, index) => [
             `${categoryIndex + 1}.${index + 1}`,
-            material.description || "N/A",
-            material.quantity ? Math.ceil(material.quantity) : "N/A", // Rounded-up Quantity
-            material.unit || "N/A",
-            `PHP ${new Intl.NumberFormat("en-PH", {
-              style: "decimal",
+            material.description || 'N/A',
+            material.quantity ? Math.ceil(material.quantity) : 'N/A', // Rounded-up Quantity
+            material.unit || 'N/A',
+            `PHP ${new Intl.NumberFormat('en-PH', {
+              style: 'decimal',
               minimumFractionDigits: 2,
             }).format(material.cost)}`,
-            `PHP ${new Intl.NumberFormat("en-PH", {
-              style: "decimal",
+            `PHP ${new Intl.NumberFormat('en-PH', {
+              style: 'decimal',
               minimumFractionDigits: 2,
             }).format(Math.ceil(material.totalAmount * 100) / 100 || 0)}`,
           ]),
@@ -687,8 +682,8 @@ const ProjectList = () => {
         yPosition = doc.lastAutoTable.finalY + 5;
 
         // Add total for each category
-        const categoryTotal = `PHP ${new Intl.NumberFormat("en-PH", {
-          style: "decimal",
+        const categoryTotal = `PHP ${new Intl.NumberFormat('en-PH', {
+          style: 'decimal',
           minimumFractionDigits: 2,
         }).format(
           category.materials.reduce(
@@ -712,14 +707,14 @@ const ProjectList = () => {
   const closeGeneratorModal = () => {
     setGeneratorModalOpen(false);
     setFormData({
-      totalArea: "",
-      avgFloorHeight: "",
-      selectedTemplateId: "",
-      numFloors: "",
-      roomCount: "",
-      foundationDepth: "",
+      totalArea: '',
+      avgFloorHeight: '',
+      selectedTemplateId: '',
+      numFloors: '',
+      roomCount: '',
+      foundationDepth: '',
     });
-    setSelectedLocation("");
+    setSelectedLocation('');
     setErrors({});
     setSelectedProjectForBOM(null);
   };
@@ -736,16 +731,16 @@ const ProjectList = () => {
   const handleMaterialAdd = () => {
     setMaterialModalOpen(false);
     setAddMaterialModalOpen(true);
-    showAlert("Success", "Material added successfully!", "success");
+    showAlert('Success', 'Material added successfully!', 'success');
   };
 
   const handleCreateMaterial = async () => {
     try {
       if (!newMaterial.description || !newMaterial.cost || !newMaterial.unit) {
         showAlert(
-          "Error",
-          "Please fill in description, cost, and unit fields.",
-          "error"
+          'Error',
+          'Please fill in description, cost, and unit fields.',
+          'error'
         );
         return;
       }
@@ -777,20 +772,20 @@ const ProjectList = () => {
 
       setAddMaterialModalOpen(false);
       setNewMaterial({
-        description: "",
-        unit: "",
-        cost: "",
-        specifications: "",
-        supplier: "",
-        brand: "",
+        description: '',
+        unit: '',
+        cost: '',
+        specifications: '',
+        supplier: '',
+        brand: '',
       });
-      showAlert("Success", "Material added successfully!", "success");
+      showAlert('Success', 'Material added successfully!', 'success');
 
       // Reopen material modal with updated list
       setMaterialModalOpen(true);
     } catch (error) {
-      console.error("Error creating material:", error);
-      showAlert("Error", "Failed to add material. Please try again.", "error");
+      console.error('Error creating material:', error);
+      showAlert('Error', 'Failed to add material. Please try again.', 'error');
     }
   };
 
@@ -827,7 +822,7 @@ const ProjectList = () => {
 
   // Pop-out notification state
   const [newMessageNotification, setNewMessageNotification] = useState(false);
-  const [newMessageContent, setNewMessageContent] = useState("");
+  const [newMessageContent, setNewMessageContent] = useState('');
 
   const toggleDetails = (section) => {
     setExpandedSections((prev) => ({
@@ -846,7 +841,7 @@ const ProjectList = () => {
     }));
   };
 
-  const showAlert = (title, message, type = "info") => {
+  const showAlert = (title, message, type = 'info') => {
     setAlertTitle(title);
     setAlertMessage(message);
     setAlertType(type);
@@ -945,7 +940,7 @@ const ProjectList = () => {
 
         // Ensure projectsData is an array
         if (!Array.isArray(projectsData)) {
-          console.error("Projects data is not an array:", projectsData);
+          console.error('Projects data is not an array:', projectsData);
           projectsData = [];
         }
 
@@ -954,27 +949,27 @@ const ProjectList = () => {
         setUsers(usersResponse.data);
 
         // Sort templates based on 'tier' property
-        const desiredOrder = ["economy", "standard", "premium"];
+        const desiredOrder = ['economy', 'standard', 'premium'];
         const sortedTemplates = [...templatesResponse.data.templates].sort(
           (a, b) => {
-            const tierA = (a.tier || "").toLowerCase();
-            const tierB = (b.tier || "").toLowerCase();
+            const tierA = (a.tier || '').toLowerCase();
+            const tierB = (b.tier || '').toLowerCase();
             return desiredOrder.indexOf(tierA) - desiredOrder.indexOf(tierB);
           }
         );
         setTemplates(sortedTemplates);
 
         // Debugging Logs - check the actual structure
-        console.log("Fetched Projects:", projectsData);
-        console.log("Projects Response Structure:", projectsResponse.data);
-        console.log("Fetched Templates:", sortedTemplates);
-        console.log("Fetched Locations:", locationsResponse.data);
+        console.log('Fetched Projects:', projectsData);
+        console.log('Projects Response Structure:', projectsResponse.data);
+        console.log('Fetched Templates:', sortedTemplates);
+        console.log('Fetched Locations:', locationsResponse.data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error('Error fetching data:', error);
         showAlert(
-          "Error",
-          "Failed to fetch projects, locations, or templates. Please try again later.",
-          "error"
+          'Error',
+          'Failed to fetch projects, locations, or templates. Please try again later.',
+          'error'
         );
       } finally {
         setIsLoading(false);
@@ -985,8 +980,8 @@ const ProjectList = () => {
   }, [user]);
 
   useEffect(() => {
-    console.log("Projects state:", projects);
-    console.log("Filtered projects:", filterProjects());
+    console.log('Projects state:', projects);
+    console.log('Filtered projects:', filterProjects());
   }, [projects, searchTerm]);
 
   const handleUpdateTaskImageRemark = (
@@ -1013,36 +1008,36 @@ const ProjectList = () => {
     setNewProject({ ...newProject, avgFloorHeight: inputValue });
 
     // If the input is empty, clear the error and return
-    if (inputValue === "") {
-      setHeightError("");
+    if (inputValue === '') {
+      setHeightError('');
       return;
     }
 
     const value = parseFloat(inputValue);
 
     if (isNaN(value)) {
-      setHeightError("Please enter a valid number.");
+      setHeightError('Please enter a valid number.');
       showAlert(
-        "Validation Error",
-        "Please enter a valid number for floor height.",
-        "error"
+        'Validation Error',
+        'Please enter a valid number for floor height.',
+        'error'
       );
     } else if (value < 0) {
-      setHeightError("The floor height cannot be negative.");
+      setHeightError('The floor height cannot be negative.');
       showAlert(
-        "Validation Error",
-        "The floor height cannot be negative.",
-        "error"
+        'Validation Error',
+        'The floor height cannot be negative.',
+        'error'
       );
     } else if (value > 15) {
-      setHeightError("The floor height cannot exceed 15 meters.");
+      setHeightError('The floor height cannot exceed 15 meters.');
       showAlert(
-        "Validation Error",
-        "The floor height cannot exceed 15 meters.",
-        "error"
+        'Validation Error',
+        'The floor height cannot exceed 15 meters.',
+        'error'
       );
     } else {
-      setHeightError("");
+      setHeightError('');
       setNewProject({ ...newProject, avgFloorHeight: value });
     }
   };
@@ -1051,9 +1046,9 @@ const ProjectList = () => {
     const files = Array.from(e.target.files);
     if (!files.length) {
       showAlert(
-        "Error",
-        "No files selected. Please select images to upload.",
-        "error"
+        'Error',
+        'No files selected. Please select images to upload.',
+        'error'
       );
       return;
     }
@@ -1065,7 +1060,7 @@ const ProjectList = () => {
           preview: reader.result,
           file,
           isLocal: true,
-          remark: "",
+          remark: '',
         };
 
         setLocalImages((prev) => {
@@ -1134,29 +1129,29 @@ const ProjectList = () => {
     setNewProject({ ...newProject, totalArea: inputValue });
 
     // If the input is empty, clear the error and return
-    if (inputValue === "") {
-      setTotalAreaError("");
+    if (inputValue === '') {
+      setTotalAreaError('');
       return;
     }
 
     const value = parseFloat(inputValue);
 
     if (isNaN(value)) {
-      setTotalAreaError("Please enter a valid number.");
+      setTotalAreaError('Please enter a valid number.');
       showAlert(
-        "Validation Error",
-        "Please enter a valid number for total area.",
-        "error"
+        'Validation Error',
+        'Please enter a valid number for total area.',
+        'error'
       );
     } else if (value <= 0) {
-      setTotalAreaError("Total area must be greater than 0.");
+      setTotalAreaError('Total area must be greater than 0.');
       showAlert(
-        "Validation Error",
-        "Total area must be greater than 0.",
-        "error"
+        'Validation Error',
+        'Total area must be greater than 0.',
+        'error'
       );
     } else {
-      setTotalAreaError("");
+      setTotalAreaError('');
       setNewProject({ ...newProject, totalArea: value });
     }
   };
@@ -1172,7 +1167,7 @@ const ProjectList = () => {
       );
 
       // Log the entire response.data to examine its structure
-      console.log("Response Data:", response.data);
+      console.log('Response Data:', response.data);
 
       // Attempt to access the project data, with more fallback and error handling
       const updatedProject = response.data?.project || response.data;
@@ -1185,23 +1180,23 @@ const ProjectList = () => {
           )
         );
         showAlert(
-          "Success",
-          `Progress mode set to ${isAutomatic ? "Automatic" : "Manual"}.`,
-          "success"
+          'Success',
+          `Progress mode set to ${isAutomatic ? 'Automatic' : 'Manual'}.`,
+          'success'
         );
       } else {
         console.error(
-          "Error: Updated project data is undefined or missing _id in the response:",
+          'Error: Updated project data is undefined or missing _id in the response:',
           response.data
         );
-        showAlert("Error", "Failed to retrieve updated project data.", "error");
+        showAlert('Error', 'Failed to retrieve updated project data.', 'error');
       }
     } catch (error) {
-      console.error("Error toggling progress mode:", error);
+      console.error('Error toggling progress mode:', error);
       showAlert(
-        "Error",
-        "Failed to toggle progress mode. Please try again.",
-        "error"
+        'Error',
+        'Failed to toggle progress mode. Please try again.',
+        'error'
       );
     }
   };
@@ -1214,53 +1209,79 @@ const ProjectList = () => {
     setNewProject({ ...newProject, numFloors: inputValue });
 
     // If the input is empty, clear the error and return
-    if (inputValue === "") {
-      setFloorError("");
+    if (inputValue === '') {
+      setFloorError('');
       return;
     }
 
     const value = parseInt(inputValue, 10);
 
     if (isNaN(value)) {
-      setFloorError("Please enter a valid number.");
+      setFloorError('Please enter a valid number.');
       showAlert(
-        "Validation Error",
-        "Please enter a valid number for the number of floors.",
-        "error"
+        'Validation Error',
+        'Please enter a valid number for the number of floors.',
+        'error'
       );
     } else if (value < 1) {
-      setFloorError("The number of floors cannot be less than 1.");
+      setFloorError('The number of floors cannot be less than 1.');
       showAlert(
-        "Validation Error",
-        "The number of floors cannot be less than 1.",
-        "error"
+        'Validation Error',
+        'The number of floors cannot be less than 1.',
+        'error'
       );
     } else if (value > 2) {
       setFloorError(
-        "Invalid input. Projects are restricted to a maximum of 2 floors."
+        'Invalid input. Projects are restricted to a maximum of 2 floors.'
       );
       showAlert(
-        "Validation Error",
-        "The number of floors cannot exceed 2.",
-        "error"
+        'Validation Error',
+        'The number of floors cannot exceed 2.',
+        'error'
       );
     } else {
-      setFloorError("");
+      setFloorError('');
       setNewProject({ ...newProject, numFloors: value });
     }
   };
 
   // Function to handle project deletion after confirmation
-  const handleConfirmDelete = () => {
-    if (selectedProject) {
-      handleDeleteProject();
-    } else {
-      console.error("No project selected for deletion.");
-      showAlert("Error", "No project selected for deletion.", "error");
+  const handleConfirmDelete = async () => {
+    if (!selectedProject?._id) {
+      showAlert('Error', 'No project selected.', 'error');
+      return;
+    }
+
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_LOCAL_URL}/api/project/${selectedProject._id}`,
+        {
+          headers: { Authorization: `Bearer ${user?.token}` },
+        }
+      );
+
+      // Remove deleted project from local state
+      setProjects((prevProjects) =>
+        prevProjects.filter((project) => project._id !== selectedProject._id)
+      );
+
+      // Reset UI states
+      setSelectedProject(null);
+      setShowDeleteModal(false);
+
+      // Success feedback
+      showAlert('Success', 'Project deleted successfully.', 'success');
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      showAlert(
+        'Error',
+        error.response?.data?.message ||
+          'Failed to delete project. Please try again.',
+        'error'
+      );
     }
   };
 
-  // Function to handle when the user cancels the delete operation
   const handleCancelDelete = () => {
     setShowDeleteModal(false);
     setSelectedProject(null);
@@ -1271,15 +1292,15 @@ const ProjectList = () => {
     setCreateLoading(true);
     try {
       if (!newProject.template) {
-        showAlert("Error", "Please select a template.", "error");
+        showAlert('Error', 'Please select a template.', 'error');
         return;
       }
       if (newProject.totalArea <= 0) {
-        showAlert("Error", "Total area must be greater than 0.", "error");
+        showAlert('Error', 'Total area must be greater than 0.', 'error');
         return;
       }
 
-      let projectImageUrl = "";
+      let projectImageUrl = '';
 
       // Upload project image to Cloudinary if available
       if (projectImage) {
@@ -1287,9 +1308,9 @@ const ProjectList = () => {
           projectImageUrl = await uploadToCloudinary(projectImage);
         } catch (error) {
           showAlert(
-            "Error",
-            "Failed to upload project image. Please try again.",
-            "error"
+            'Error',
+            'Failed to upload project image. Please try again.',
+            'error'
           );
           return;
         }
@@ -1326,7 +1347,7 @@ const ProjectList = () => {
         {
           headers: {
             Authorization: `Bearer ${user.token}`,
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
         }
       );
@@ -1336,20 +1357,20 @@ const ProjectList = () => {
       setProjectImage(null);
       setProjectImagePreview(null);
       setIsModalOpen(false);
-      showAlert("Success", "Project created successfully!", "success");
+      showAlert('Success', 'Project created successfully!', 'success');
     } catch (error) {
       if (error.response && error.response.status === 404) {
         showAlert(
-          "Error",
-          "The selected template was not found. Please select a valid template.",
-          "error"
+          'Error',
+          'The selected template was not found. Please select a valid template.',
+          'error'
         );
       } else {
-        console.error("Error creating project:", error);
+        console.error('Error creating project:', error);
         showAlert(
-          "Error",
-          "Failed to create project. Please try again.",
-          "error"
+          'Error',
+          'Failed to create project. Please try again.',
+          'error'
         );
       }
     } finally {
@@ -1377,7 +1398,7 @@ const ProjectList = () => {
 
       setProjects(projectsData);
     } catch (error) {
-      console.error("Error refreshing projects:", error);
+      console.error('Error refreshing projects:', error);
     }
   };
 
@@ -1393,9 +1414,9 @@ const ProjectList = () => {
           projectImageUrl = await uploadToCloudinary(projectImage);
         } catch (error) {
           showAlert(
-            "Error",
-            "Failed to upload project image. Please try again.",
-            "error"
+            'Error',
+            'Failed to upload project image. Please try again.',
+            'error'
           );
           return;
         }
@@ -1428,10 +1449,10 @@ const ProjectList = () => {
                   const imageUrl = await uploadToCloudinary(img.file);
                   return {
                     path: imageUrl,
-                    remark: img.remark || "",
+                    remark: img.remark || '',
                   };
                 } catch (error) {
-                  console.error("Error uploading floor image:", error);
+                  console.error('Error uploading floor image:', error);
                   return null;
                 }
               })
@@ -1457,10 +1478,10 @@ const ProjectList = () => {
                         const imageUrl = await uploadToCloudinary(img.file);
                         return {
                           path: imageUrl,
-                          remark: img.remark || "",
+                          remark: img.remark || '',
                         };
                       } catch (error) {
-                        console.error("Error uploading task image:", error);
+                        console.error('Error uploading task image:', error);
                         return null;
                       }
                     }
@@ -1508,7 +1529,7 @@ const ProjectList = () => {
         {
           headers: {
             Authorization: `Bearer ${user.token}`,
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
         }
       );
@@ -1540,13 +1561,13 @@ const ProjectList = () => {
       resetProjectForm();
       setIsEditing(false);
       setIsModalOpen(false);
-      showAlert("Success", "Project updated successfully!", "success");
+      showAlert('Success', 'Project updated successfully!', 'success');
     } catch (error) {
-      console.error("Error updating project:", error);
+      console.error('Error updating project:', error);
       showAlert(
-        "Error",
-        "Failed to update project. Please try again.",
-        "error"
+        'Error',
+        'Failed to update project. Please try again.',
+        'error'
       );
     }
   };
@@ -1554,9 +1575,9 @@ const ProjectList = () => {
   const handleSaveBOM = (BomId) => {
     if (!BomId) {
       showAlert(
-        "Error",
-        "No project selected. Please select a project before saving.",
-        "error"
+        'Error',
+        'No project selected. Please select a project before saving.',
+        'error'
       );
       return;
     }
@@ -1569,7 +1590,7 @@ const ProjectList = () => {
         markedUpCosts: bom.markedUpCosts,
       },
     };
-    console.log("Selected Project ID:", BomId);
+    console.log('Selected Project ID:', BomId);
 
     axios
       .post(
@@ -1581,47 +1602,47 @@ const ProjectList = () => {
       )
       .then(() => {
         setBom(null);
-        showAlert("Success", "BOM saved to the project!", "success");
+        showAlert('Success', 'BOM saved to the project!', 'success');
       })
       .catch((error) => {
         console.error(
-          "Failed to save BOM to project:",
+          'Failed to save BOM to project:',
           error.response || error.message || error
         );
         const errorMessage =
           error.response?.data?.message ||
           error.message ||
-          "Failed to save BOM to the project.";
-        showAlert("Error", errorMessage, "error");
+          'Failed to save BOM to the project.';
+        showAlert('Error', errorMessage, 'error');
       });
   };
 
   // Reset the project form
   const resetProjectForm = () => {
     setNewProject({
-      name: "",
-      contractor: "",
-      user: "",
-      numFloors: "",
-      template: "",
+      name: '',
+      contractor: '',
+      user: '',
+      numFloors: '',
+      template: '',
       floors: [],
       timeline: {
-        duration: "",
-        unit: "months",
+        duration: '',
+        unit: 'months',
       },
-      location: "",
-      totalArea: "",
-      avgFloorHeight: "",
-      roomCount: "",
-      foundationDepth: "",
+      location: '',
+      totalArea: '',
+      avgFloorHeight: '',
+      roomCount: '',
+      foundationDepth: '',
     });
     setProjectImage(null);
     setProjectImagePreview(null);
     // Reset validation errors
-    setHeightError("");
-    setFloorError("");
-    setRoomCountError("");
-    setFoundationDepthError("");
+    setHeightError('');
+    setFloorError('');
+    setRoomCountError('');
+    setFoundationDepthError('');
   };
 
   const handleStartProject = async (projectId) => {
@@ -1639,10 +1660,10 @@ const ProjectList = () => {
           project._id === updatedProject._id ? updatedProject : project
         )
       );
-      showAlert("Success", "Project started successfully!", "success");
+      showAlert('Success', 'Project started successfully!', 'success');
     } catch (error) {
-      console.error("Error starting project:", error);
-      showAlert("Error", "Failed to start project. Please try again.", "error");
+      console.error('Error starting project:', error);
+      showAlert('Error', 'Failed to start project. Please try again.', 'error');
     }
   };
 
@@ -1668,13 +1689,13 @@ const ProjectList = () => {
           project._id === updatedProject._id ? updatedProject : project
         )
       );
-      showAlert("Success", "Project postponed successfully!", "success");
+      showAlert('Success', 'Project postponed successfully!', 'success');
     } catch (error) {
-      console.error("Error postponing project:", error);
+      console.error('Error postponing project:', error);
       showAlert(
-        "Error",
-        "Failed to postpone project. Please try again.",
-        "error"
+        'Error',
+        'Failed to postpone project. Please try again.',
+        'error'
       );
     }
   };
@@ -1694,13 +1715,13 @@ const ProjectList = () => {
           project._id === updatedProject._id ? updatedProject : project
         )
       );
-      showAlert("Success", "Project resumed successfully!", "success");
+      showAlert('Success', 'Project resumed successfully!', 'success');
     } catch (error) {
-      console.error("Error resuming project:", error);
+      console.error('Error resuming project:', error);
       showAlert(
-        "Error",
-        "Failed to resume project. Please try again.",
-        "error"
+        'Error',
+        'Failed to resume project. Please try again.',
+        'error'
       );
     }
   };
@@ -1721,19 +1742,19 @@ const ProjectList = () => {
         )
       );
 
-      showAlert("Success", "Project ended successfully!", "success");
+      showAlert('Success', 'Project ended successfully!', 'success');
     } catch (error) {
-      console.error("Error ending project:", error);
-      showAlert("Error", "Failed to end project. Please try again.", "error");
+      console.error('Error ending project:', error);
+      showAlert('Error', 'Failed to end project. Please try again.', 'error');
     }
   };
   const handleDeleteExistingImage = (floorIndex, imageIndex) => {
-    setImageToDelete({ type: "floor", floorIndex, imageIndex });
+    setImageToDelete({ type: 'floor', floorIndex, imageIndex });
     setShowImageDeleteModal(true);
   };
 
   const handleDeleteExistingTaskImage = (floorIndex, taskIndex, imageIndex) => {
-    setImageToDelete({ type: "task", floorIndex, taskIndex, imageIndex });
+    setImageToDelete({ type: 'task', floorIndex, taskIndex, imageIndex });
     setShowImageDeleteModal(true);
   };
 
@@ -1751,7 +1772,7 @@ const ProjectList = () => {
     try {
       const projectId = newProject._id; // Get the project ID
 
-      if (type === "floor") {
+      if (type === 'floor') {
         const floor = newProject.floors[floorIndex];
         const floorId = floor._id; // Get the floor ID
         const image = floor.images[imageIndex];
@@ -1759,7 +1780,7 @@ const ProjectList = () => {
 
         // Ensure IDs are valid before making the API call
         if (!projectId || !floorId || !imageId) {
-          showAlert("Error", "Invalid IDs for deleting floor image.", "error");
+          showAlert('Error', 'Invalid IDs for deleting floor image.', 'error');
           return;
         }
 
@@ -1774,17 +1795,17 @@ const ProjectList = () => {
         // Remove the image from the state
         // Remove the image from the state
         const updatedFloors = [...newProject.floors];
-        if (type === "floor") {
+        if (type === 'floor') {
           updatedFloors[floorIndex].images = updatedFloors[
             floorIndex
           ].images.filter((_, idx) => idx !== imageIndex);
-        } else if (type === "task") {
+        } else if (type === 'task') {
           updatedFloors[floorIndex].tasks[taskIndex].images = updatedFloors[
             floorIndex
           ].tasks[taskIndex].images.filter((_, idx) => idx !== imageIndex);
         }
         setNewProject({ ...newProject, floors: updatedFloors });
-      } else if (type === "task") {
+      } else if (type === 'task') {
         const floor = newProject.floors[floorIndex];
         const floorId = floor._id; // Get the floor ID
         const task = floor.tasks[taskIndex];
@@ -1803,11 +1824,11 @@ const ProjectList = () => {
         // Remove the image from the state
         // Remove the image from the state
         const updatedFloors = [...newProject.floors];
-        if (type === "floor") {
+        if (type === 'floor') {
           updatedFloors[floorIndex].images = updatedFloors[
             floorIndex
           ].images.filter((_, idx) => idx !== imageIndex);
-        } else if (type === "task") {
+        } else if (type === 'task') {
           updatedFloors[floorIndex].tasks[taskIndex].images = updatedFloors[
             floorIndex
           ].tasks[taskIndex].images.filter((_, idx) => idx !== imageIndex);
@@ -1815,10 +1836,10 @@ const ProjectList = () => {
         setNewProject({ ...newProject, floors: updatedFloors });
       }
 
-      showAlert("Success", "Image deleted successfully!", "success");
+      showAlert('Success', 'Image deleted successfully!', 'success');
     } catch (error) {
-      console.error("Error deleting image:", error);
-      showAlert("Error", "Failed to delete image. Please try again.", "error");
+      console.error('Error deleting image:', error);
+      showAlert('Error', 'Failed to delete image. Please try again.', 'error');
     } finally {
       setShowImageDeleteModal(false);
       setImageToDelete(null);
@@ -1852,10 +1873,10 @@ const ProjectList = () => {
     setNewProject({
       ...project,
       floors: floorsWithProgress,
-      location: project.location || "",
+      location: project.location || '',
       totalArea: project.totalArea || 0,
       avgFloorHeight: project.avgFloorHeight || 0,
-      template: isValidTemplateId ? project.template : "",
+      template: isValidTemplateId ? project.template : '',
     });
 
     // Set project image preview if it exists
@@ -1883,13 +1904,13 @@ const ProjectList = () => {
           project._id === updatedProject._id ? updatedProject : project
         )
       );
-      showAlert("Success", "Project status updated successfully!", "success");
+      showAlert('Success', 'Project status updated successfully!', 'success');
     } catch (error) {
-      console.error("Error updating project status:", error);
+      console.error('Error updating project status:', error);
       showAlert(
-        "Error",
-        "Failed to update project status. Please try again.",
-        "error"
+        'Error',
+        'Failed to update project status. Please try again.',
+        'error'
       );
     }
   };
@@ -1899,7 +1920,7 @@ const ProjectList = () => {
     const updatedFloors = newProject.floors.map((floor, index) => {
       if (index === floorIndex) {
         // For progress field, ensure it's a valid number between 0-100
-        if (key === "progress") {
+        if (key === 'progress') {
           const numericValue = parseInt(value, 10);
           const validProgress = isNaN(numericValue)
             ? 0
@@ -1931,7 +1952,7 @@ const ProjectList = () => {
       (task, index) => {
         if (index === taskIndex) {
           // For progress field, ensure it's a valid number between 0-100
-          if (key === "progress") {
+          if (key === 'progress') {
             const numericValue = parseInt(value, 10);
             const validProgress = isNaN(numericValue)
               ? 0
@@ -1967,7 +1988,7 @@ const ProjectList = () => {
             ...floor,
             tasks: [
               ...floor.tasks,
-              { name: "", progress: 0, isManual: false, images: [] }, // Initialize images
+              { name: '', progress: 0, isManual: false, images: [] }, // Initialize images
             ],
           }
         : floor
@@ -1977,7 +1998,7 @@ const ProjectList = () => {
 
   const addFloor = () => {
     if (newProject.floors.length >= 5) {
-      showAlert("Error", "Cannot add more than 5 floors.", "error");
+      showAlert('Error', 'Cannot add more than 5 floors.', 'error');
       return;
     }
 
@@ -2036,13 +2057,13 @@ const ProjectList = () => {
         }
       );
 
-      showAlert("Success", "Image remark updated successfully!", "success");
+      showAlert('Success', 'Image remark updated successfully!', 'success');
     } catch (error) {
-      console.error("Error updating image remark:", error);
+      console.error('Error updating image remark:', error);
       showAlert(
-        "Error",
-        "Failed to update image remark. Please try again.",
-        "error"
+        'Error',
+        'Failed to update image remark. Please try again.',
+        'error'
       );
     }
   };
@@ -2055,25 +2076,25 @@ const ProjectList = () => {
     setNewProject({ ...newProject, roomCount: inputValue });
 
     // If the input is empty, clear the error and return
-    if (inputValue === "") {
-      setRoomCountError("");
+    if (inputValue === '') {
+      setRoomCountError('');
       return;
     }
 
     const value = parseInt(inputValue, 10);
 
     if (isNaN(value)) {
-      setRoomCountError("Please enter a valid number.");
+      setRoomCountError('Please enter a valid number.');
       showAlert(
-        "Validation Error",
-        "Please enter a valid number for room count.",
-        "error"
+        'Validation Error',
+        'Please enter a valid number for room count.',
+        'error'
       );
     } else if (value < 1) {
-      setRoomCountError("Room count must be at least 1.");
-      showAlert("Validation Error", "Room count must be at least 1.", "error");
+      setRoomCountError('Room count must be at least 1.');
+      showAlert('Validation Error', 'Room count must be at least 1.', 'error');
     } else {
-      setRoomCountError("");
+      setRoomCountError('');
       setNewProject({ ...newProject, roomCount: value });
     }
   };
@@ -2086,29 +2107,29 @@ const ProjectList = () => {
     setNewProject({ ...newProject, foundationDepth: inputValue });
 
     // If the input is empty, clear the error and return
-    if (inputValue === "") {
-      setFoundationDepthError("");
+    if (inputValue === '') {
+      setFoundationDepthError('');
       return;
     }
 
     const value = parseFloat(inputValue);
 
     if (isNaN(value)) {
-      setFoundationDepthError("Please enter a valid number.");
+      setFoundationDepthError('Please enter a valid number.');
       showAlert(
-        "Validation Error",
-        "Please enter a valid number for foundation depth.",
-        "error"
+        'Validation Error',
+        'Please enter a valid number for foundation depth.',
+        'error'
       );
     } else if (value <= 0) {
-      setFoundationDepthError("Foundation depth must be greater than 0.");
+      setFoundationDepthError('Foundation depth must be greater than 0.');
       showAlert(
-        "Validation Error",
-        "Foundation depth must be greater than 0.",
-        "error"
+        'Validation Error',
+        'Foundation depth must be greater than 0.',
+        'error'
       );
     } else {
-      setFoundationDepthError("");
+      setFoundationDepthError('');
       setNewProject({ ...newProject, foundationDepth: value });
     }
   };
@@ -2118,6 +2139,207 @@ const ProjectList = () => {
     setSelectedProject(project);
     setShowDeleteModal(true);
   };
+  const handleGeneratePDF = (version = 'client') => {
+    if (!selectedProject?.bom) {
+      alert('No BOM data available for this project.');
+      return;
+    }
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    let yPosition = 20;
+
+    try {
+      // --- Header Logo ---
+      if (sorianoLogo) {
+        doc.addImage(
+          sorianoLogo,
+          'JPEG',
+          20,
+          10,
+          pageWidth - 40,
+          (pageWidth - 40) * 0.2
+        );
+        yPosition += 30;
+      }
+
+      // --- Title ---
+      doc.setFontSize(15);
+      doc.text('Generated Bill of Materials (BOM)', pageWidth / 2, yPosition, {
+        align: 'center',
+      });
+      yPosition += 15;
+
+      // --- Project Details ---
+      const bom = selectedProject.bom;
+      const projectDetails = [
+        `Project: ${bom.name || 'Custom'}`,
+        `Total Area: ${bom.totalArea || 0} sqm`,
+        `Number of Floors: ${bom.numFloors || 0}`,
+        `Floor Height: ${bom.avgFloorHeight || 0} meters`,
+      ];
+
+      doc.setFontSize(12);
+      projectDetails.forEach((line) => {
+        doc.text(line, 10, yPosition);
+        yPosition += 8;
+      });
+
+      const formatPHP = (value) =>
+        `PHP ${new Intl.NumberFormat('en-PH', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(value || 0)}`;
+
+      yPosition += 5;
+
+      // --- Client Version ---
+      if (version === 'client') {
+        const grandTotal =
+          Math.ceil(bom.markedUpCosts.totalProjectCost * 100) / 100;
+        doc.setFontSize(13);
+        doc.text(`Grand Total: ${formatPHP(grandTotal)}`, 10, yPosition);
+        yPosition += 15;
+
+        // Loop through categories
+        bom.categories.forEach((cat, categoryIndex) => {
+          doc.setFontSize(12);
+          doc.text(cat.category.toUpperCase(), 10, yPosition);
+          yPosition += 5;
+
+          doc.autoTable({
+            head: [
+              [
+                'Item',
+                'Description',
+                'Quantity',
+                'Unit',
+                'Unit Cost (PHP)',
+                'Total Amount (PHP)',
+              ],
+            ],
+            body: cat.materials.map((material, index) => [
+              `${categoryIndex + 1}.${index + 1}`,
+              material.description || 'N/A',
+              material.quantity ? Math.ceil(material.quantity) : 'N/A',
+              material.unit || 'N/A',
+              formatPHP(material.cost),
+              formatPHP(Math.ceil(material.totalAmount * 100) / 100),
+            ]),
+            startY: yPosition,
+            theme: 'striped',
+            headStyles: { fillColor: [41, 128, 185] },
+            bodyStyles: { textColor: [44, 62, 80] },
+            styles: { fontSize: 10 },
+            didDrawPage: (data) => {
+              yPosition = data.cursor.y + 10;
+            },
+          });
+
+          yPosition = doc.lastAutoTable.finalY + 10;
+
+          // Add page if content overflows
+          if (yPosition > pageHeight - 40) {
+            doc.addPage();
+            yPosition = 20;
+          }
+        });
+      }
+
+      // --- Contractor Version ---
+      else {
+        const { originalCosts, markedUpCosts, projectDetails: project } = bom;
+        const markup = project?.location?.markup || 0;
+        const locationName = project?.location?.name || 'Unknown';
+
+        const infoLines = [
+          'Design Engineer Cost Breakdown',
+          `Original Project Cost (no markup): ${formatPHP(
+            originalCosts.totalProjectCost
+          )}`,
+          `Original Labor Cost (no markup): ${formatPHP(
+            originalCosts.laborCost
+          )}`,
+          `Location: ${locationName} (Markup: ${markup}%)`,
+          `Marked-Up Project Cost: ${formatPHP(
+            markedUpCosts.totalProjectCost
+          )}`,
+          `Marked-Up Labor Cost: ${formatPHP(markedUpCosts.laborCost)}`,
+        ];
+
+        doc.setFontSize(13);
+        infoLines.forEach((line) => {
+          doc.text(line, 10, yPosition);
+          yPosition += 8;
+        });
+
+        yPosition += 10;
+
+        bom.categories.forEach((category, categoryIndex) => {
+          doc.setFontSize(12);
+          doc.text(category.category.toUpperCase(), 10, yPosition);
+          yPosition += 5;
+
+          doc.autoTable({
+            head: [
+              [
+                'Item',
+                'Description',
+                'Quantity',
+                'Unit',
+                'Unit Cost (PHP)',
+                'Total Amount (PHP)',
+              ],
+            ],
+            body: category.materials.map((material, index) => [
+              `${categoryIndex + 1}.${index + 1}`,
+              material.description || 'N/A',
+              material.quantity ? Math.ceil(material.quantity) : 'N/A',
+              material.unit || 'N/A',
+              formatPHP(material.cost),
+              formatPHP(Math.ceil(material.totalAmount * 100) / 100),
+            ]),
+            startY: yPosition,
+            theme: 'striped',
+            headStyles: { fillColor: [41, 128, 185] },
+            bodyStyles: { textColor: [44, 62, 80] },
+            styles: { fontSize: 10 },
+            didDrawPage: (data) => {
+              yPosition = data.cursor.y + 10;
+            },
+          });
+
+          yPosition = doc.lastAutoTable.finalY + 8;
+
+          // Add category total
+          const categoryTotal = category.materials.reduce(
+            (sum, m) => sum + (m.totalAmount || 0),
+            0
+          );
+          doc.text(
+            `Total for ${category.category.toUpperCase()}: ${formatPHP(
+              categoryTotal
+            )}`,
+            10,
+            yPosition
+          );
+          yPosition += 15;
+
+          if (yPosition > pageHeight - 40) {
+            doc.addPage();
+            yPosition = 20;
+          }
+        });
+      }
+
+      // --- Save File ---
+      doc.save(`BOM_${version}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
+  };
 
   // Filter projects based on search term
   const filterProjects = () => {
@@ -2126,7 +2348,7 @@ const ProjectList = () => {
       (project) =>
         project &&
         project.name &&
-        project.status !== "finished" &&
+        project.status !== 'finished' &&
         project.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
@@ -2135,15 +2357,13 @@ const ProjectList = () => {
   const theme = createTheme({
     palette: {
       primary: {
-        main: "#a7b194", // Set your desired color here
+        main: '#a7b194', // Set your desired color here
       },
       secondary: {
-        main: "#6f7d5e", // Optional: Set a complementary secondary color
+        main: '#6f7d5e', // Optional: Set a complementary secondary color
       },
     },
   });
-
-  console.log("BOM", selectedProjectForBOM);
 
   return (
     <>
@@ -2193,10 +2413,10 @@ const ProjectList = () => {
                 </Button>
               </Box>
               <Typography variant="subtitle1" gutterBottom>
-                Total Projects:{" "}
+                Total Projects:{' '}
                 {
                   filteredProjects.filter(
-                    (project) => project.status !== "finished"
+                    (project) => project.status !== 'finished'
                   ).length
                 }
               </Typography>
@@ -2217,73 +2437,73 @@ const ProjectList = () => {
                   </TableHead>
                   <TableBody>
                     {filteredProjects
-                      .filter((project) => project.status !== "finished")
+                      .filter((project) => project.status !== 'finished')
                       .map((project) => (
                         <TableRow key={project._id} hover>
                           <TableCell
                             onClick={() => handleViewProjectDetails(project)}
-                            style={{ cursor: "pointer" }}
+                            style={{ cursor: 'pointer' }}
                           >
                             {project.projectImage ? (
                               <img
                                 src={project.projectImage}
                                 alt="Project"
                                 style={{
-                                  width: "50px",
-                                  height: "50px",
-                                  objectFit: "cover",
-                                  borderRadius: "4px",
+                                  width: '50px',
+                                  height: '50px',
+                                  objectFit: 'cover',
+                                  borderRadius: '4px',
                                 }}
                               />
                             ) : (
-                              "N/A"
+                              'N/A'
                             )}
                           </TableCell>
                           <TableCell
                             onClick={() => handleViewProjectDetails(project)}
-                            style={{ cursor: "pointer" }}
+                            style={{ cursor: 'pointer' }}
                           >
-                            {project.name || "N/A"}
+                            {project.name || 'N/A'}
                           </TableCell>
                           <TableCell
                             onClick={() => handleViewProjectDetails(project)}
-                            style={{ cursor: "pointer" }}
+                            style={{ cursor: 'pointer' }}
                           >
-                            {project.user || "N/A"}
+                            {project.user || 'N/A'}
                           </TableCell>
                           <TableCell
                             onClick={() => handleViewProjectDetails(project)}
-                            style={{ cursor: "pointer" }}
+                            style={{ cursor: 'pointer' }}
                           >
-                            {project.contractor || "N/A"}
+                            {project.contractor || 'N/A'}
                           </TableCell>
                           <TableCell
                             onClick={() => handleViewProjectDetails(project)}
-                            style={{ cursor: "pointer" }}
+                            style={{ cursor: 'pointer' }}
                           >
                             {project.createdAt
                               ? new Date(project.createdAt).toLocaleDateString()
-                              : "N/A"}
+                              : 'N/A'}
                           </TableCell>
                           <TableCell>
                             {templates.find(
                               (template) => template._id === project.template
-                            )?.title || "N/A"}
+                            )?.title || 'N/A'}
                           </TableCell>
                           <TableCell>
                             <Typography
                               color={
-                                project.status === "finished"
-                                  ? "green"
-                                  : "orange"
+                                project.status === 'finished'
+                                  ? 'green'
+                                  : 'orange'
                               }
                             >
-                              {project.status || "N/A"}
+                              {project.status || 'N/A'}
                             </Typography>
                           </TableCell>
                           <TableCell>
-                            {project.status === "not started" ||
-                            project.status === "finished" ? (
+                            {project.status === 'not started' ||
+                            project.status === 'finished' ? (
                               <Tooltip title="Start Project">
                                 <IconButton
                                   onClick={() =>
@@ -2294,7 +2514,7 @@ const ProjectList = () => {
                                   <PlayArrowIcon />
                                 </IconButton>
                               </Tooltip>
-                            ) : project.status === "ongoing" ? (
+                            ) : project.status === 'ongoing' ? (
                               <>
                                 <Tooltip title="Postpone Project">
                                   <IconButton
@@ -2318,7 +2538,7 @@ const ProjectList = () => {
                                 </Tooltip>
                               </>
                             ) : (
-                              project.status === "postponed" && (
+                              project.status === 'postponed' && (
                                 <Tooltip title="Resume Project">
                                   <IconButton
                                     onClick={() =>
@@ -2335,7 +2555,7 @@ const ProjectList = () => {
                               <IconButton
                                 onClick={() => handleEditProject(project)}
                                 color="secondary"
-                                disabled={project.status === "finished"}
+                                disabled={project.status === 'finished'}
                               >
                                 <EditIcon />
                               </IconButton>
@@ -2343,8 +2563,8 @@ const ProjectList = () => {
                             <Tooltip
                               title={
                                 project.isAutomaticProgress
-                                  ? "Switch to Manual Mode"
-                                  : "Switch to Automatic Mode"
+                                  ? 'Switch to Manual Mode'
+                                  : 'Switch to Automatic Mode'
                               }
                             >
                               <Button
@@ -2358,11 +2578,11 @@ const ProjectList = () => {
                                   )
                                 }
                                 sx={{ ml: 1 }}
-                                disabled={project.status === "finished"}
+                                disabled={project.status === 'finished'}
                               >
                                 {project.isAutomaticProgress
-                                  ? "Automatic"
-                                  : "Manual"}
+                                  ? 'Automatic'
+                                  : 'Manual'}
                               </Button>
                             </Tooltip>
                             &nbsp;
@@ -2388,17 +2608,17 @@ const ProjectList = () => {
                                 onClick={() => {
                                   setSelectedProjectForBOM(project);
                                   setFormData({
-                                    totalArea: project.totalArea || "",
+                                    totalArea: project.totalArea || '',
                                     avgFloorHeight:
-                                      project.avgFloorHeight || "",
-                                    selectedTemplateId: project.template || "",
+                                      project.avgFloorHeight || '',
+                                    selectedTemplateId: project.template || '',
                                     numFloors:
-                                      project.floors.length.toString() || "",
-                                    roomCount: project.roomCount || "",
+                                      project.floors.length.toString() || '',
+                                    roomCount: project.roomCount || '',
                                     foundationDepth:
-                                      project.foundationDepth || "",
+                                      project.foundationDepth || '',
                                   });
-                                  setSelectedLocation(project.location || "");
+                                  setSelectedLocation(project.location || '');
                                   setGeneratorModalOpen(true);
                                 }}
                               >
@@ -2430,11 +2650,11 @@ const ProjectList = () => {
             maxWidth="md"
           >
             <DialogTitle>
-              {isEditing ? "Edit Project" : "Create New Project"}
+              {isEditing ? 'Edit Project' : 'Create New Project'}
               <IconButton
                 aria-label="close"
                 onClick={() => setIsModalOpen(false)}
-                sx={{ position: "absolute", right: 8, top: 8 }}
+                sx={{ position: 'absolute', right: 8, top: 8 }}
               >
                 <CloseIcon />
               </IconButton>
@@ -2451,20 +2671,20 @@ const ProjectList = () => {
                     src={projectImagePreview}
                     alt="Project Preview"
                     style={{
-                      width: "200px",
-                      height: "150px",
-                      objectFit: "cover",
-                      borderRadius: "8px",
+                      width: '200px',
+                      height: '150px',
+                      objectFit: 'cover',
+                      borderRadius: '8px',
                     }}
                   />
                   <IconButton
                     size="small"
                     onClick={handleRemoveProjectImage}
                     style={{
-                      position: "absolute",
+                      position: 'absolute',
                       top: 5,
                       right: 5,
-                      backgroundColor: "rgba(255, 255, 255, 0.8)",
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
                     }}
                   >
                     <CloseIcon fontSize="small" />
@@ -2668,22 +2888,22 @@ const ProjectList = () => {
                     inputProps: { min: 1 }, // Prevent values below 1
                   }}
                   error={
-                    (newProject.timeline.unit === "months" &&
+                    (newProject.timeline.unit === 'months' &&
                       newProject.timeline.duration < 3) ||
-                    (newProject.timeline.unit === "weeks" &&
+                    (newProject.timeline.unit === 'weeks' &&
                       newProject.timeline.duration < 12)
                   } // Error condition for both months and weeks
                 />
 
                 {/* Error message for duration validation */}
-                {(newProject.timeline.unit === "months" &&
+                {(newProject.timeline.unit === 'months' &&
                   newProject.timeline.duration < 3) ||
-                (newProject.timeline.unit === "weeks" &&
+                (newProject.timeline.unit === 'weeks' &&
                   newProject.timeline.duration < 12) ? (
                   <FormHelperText error>
-                    {newProject.timeline.unit === "months"
-                      ? "Duration must be at least 3 months"
-                      : "Duration must be at least 12 weeks"}
+                    {newProject.timeline.unit === 'months'
+                      ? 'Duration must be at least 3 months'
+                      : 'Duration must be at least 12 weeks'}
                   </FormHelperText>
                 ) : null}
 
@@ -2725,7 +2945,7 @@ const ProjectList = () => {
                       onChange={(e) =>
                         handleFloorChange(
                           floorIndex,
-                          "progress",
+                          'progress',
                           e.target.value,
                           true
                         )
@@ -2768,10 +2988,10 @@ const ProjectList = () => {
                                   src={img.isLocal ? img.preview : img.path}
                                   alt={`Floor Image ${imageIndex + 1}`}
                                   style={{
-                                    width: "150px",
-                                    height: "150px",
-                                    objectFit: "cover",
-                                    borderRadius: "8px",
+                                    width: '150px',
+                                    height: '150px',
+                                    objectFit: 'cover',
+                                    borderRadius: '8px',
                                   }}
                                 />
 
@@ -2780,7 +3000,7 @@ const ProjectList = () => {
                                   fullWidth
                                   margin="dense"
                                   label="Remark"
-                                  value={img.remark || ""}
+                                  value={img.remark || ''}
                                   onChange={(e) =>
                                     handleUpdateImageRemark(
                                       floorIndex,
@@ -2801,10 +3021,10 @@ const ProjectList = () => {
                                     )
                                   }
                                   style={{
-                                    position: "absolute",
+                                    position: 'absolute',
                                     top: 5,
                                     right: 5,
-                                    backgroundColor: "rgba(255, 255, 255, 0.8)",
+                                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
                                   }}
                                 >
                                   <CloseIcon fontSize="small" />
@@ -2827,10 +3047,10 @@ const ProjectList = () => {
                               src={img.preview}
                               alt={`Floor Image ${imageIndex + 1}`}
                               style={{
-                                width: "150px",
-                                height: "150px",
-                                objectFit: "cover",
-                                borderRadius: "8px",
+                                width: '150px',
+                                height: '150px',
+                                objectFit: 'cover',
+                                borderRadius: '8px',
                               }}
                             />
                             <IconButton
@@ -2839,10 +3059,10 @@ const ProjectList = () => {
                                 handleRemoveImage(floorIndex, imageIndex)
                               }
                               style={{
-                                position: "absolute",
+                                position: 'absolute',
                                 top: 5,
                                 right: 5,
-                                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                                backgroundColor: 'rgba(255, 255, 255, 0.8)',
                               }}
                             >
                               <CloseIcon fontSize="small" />
@@ -2872,7 +3092,7 @@ const ProjectList = () => {
                             handleTaskChange(
                               floorIndex,
                               taskIndex,
-                              "name",
+                              'name',
                               e.target.value
                             )
                           }
@@ -2889,7 +3109,7 @@ const ProjectList = () => {
                             handleTaskChange(
                               floorIndex,
                               taskIndex,
-                              "progress",
+                              'progress',
                               e.target.value,
                               true
                             )
@@ -2936,10 +3156,10 @@ const ProjectList = () => {
                                     src={img.path}
                                     alt={`Floor Image ${imageIndex + 1}`}
                                     style={{
-                                      width: "150px",
-                                      height: "150px",
-                                      objectFit: "cover",
-                                      borderRadius: "8px",
+                                      width: '150px',
+                                      height: '150px',
+                                      objectFit: 'cover',
+                                      borderRadius: '8px',
                                     }}
                                   />
 
@@ -2947,7 +3167,7 @@ const ProjectList = () => {
                                     fullWidth
                                     margin="dense"
                                     label="Remark"
-                                    value={img.remark || ""} // Display the current remark for task images
+                                    value={img.remark || ''} // Display the current remark for task images
                                     onChange={
                                       (e) =>
                                         handleUpdateTaskImageRemark(
@@ -2971,11 +3191,11 @@ const ProjectList = () => {
                                       )
                                     }
                                     style={{
-                                      position: "absolute",
+                                      position: 'absolute',
                                       top: 5,
                                       right: 5,
                                       backgroundColor:
-                                        "rgba(255, 255, 255, 0.8)",
+                                        'rgba(255, 255, 255, 0.8)',
                                     }}
                                   >
                                     <CloseIcon fontSize="small" />
@@ -2998,10 +3218,10 @@ const ProjectList = () => {
                                 src={img.preview}
                                 alt="Task Preview"
                                 style={{
-                                  width: "150px",
-                                  height: "150px",
-                                  objectFit: "cover",
-                                  borderRadius: "8px",
+                                  width: '150px',
+                                  height: '150px',
+                                  objectFit: 'cover',
+                                  borderRadius: '8px',
                                 }}
                               />
                               <IconButton
@@ -3014,10 +3234,10 @@ const ProjectList = () => {
                                   )
                                 }
                                 style={{
-                                  position: "absolute",
+                                  position: 'absolute',
                                   top: 5,
                                   right: 5,
-                                  backgroundColor: "rgba(255, 255, 255, 0.8)",
+                                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
                                 }}
                               >
                                 <CloseIcon fontSize="small" />
@@ -3075,7 +3295,7 @@ const ProjectList = () => {
                 variant="contained"
                 color="secondary"
               >
-                {isEditing ? "Update Project" : "Create Project"}
+                {isEditing ? 'Update Project' : 'Create Project'}
               </Button>
             </DialogActions>
           </Dialog>
@@ -3093,7 +3313,7 @@ const ProjectList = () => {
                 <IconButton
                   aria-label="close"
                   onClick={() => setShowDetailsModal(false)}
-                  sx={{ position: "absolute", right: 8, top: 8 }}
+                  sx={{ position: 'absolute', right: 8, top: 8 }}
                 >
                   <CloseIcon />
                 </IconButton>
@@ -3109,10 +3329,10 @@ const ProjectList = () => {
                       src={selectedProject.projectImage}
                       alt="Project"
                       style={{
-                        width: "100%",
-                        maxHeight: "300px",
-                        objectFit: "cover",
-                        borderRadius: "8px",
+                        width: '100%',
+                        maxHeight: '300px',
+                        objectFit: 'cover',
+                        borderRadius: '8px',
                       }}
                     />
                   </Box>
@@ -3125,21 +3345,21 @@ const ProjectList = () => {
                   </AccordionSummary>
                   <AccordionDetails>
                     <Typography>
-                      <strong>Project Owner:</strong>{" "}
-                      {selectedProject.user || "N/A"}
+                      <strong>Project Owner:</strong>{' '}
+                      {selectedProject.user || 'N/A'}
                     </Typography>
                     <Typography>
-                      <strong>Project Design Engineer:</strong>{" "}
-                      {selectedProject.contractor || "N/A"}
+                      <strong>Project Design Engineer:</strong>{' '}
+                      {selectedProject.contractor || 'N/A'}
                     </Typography>
                     <Typography>
-                      <strong>Template:</strong>{" "}
+                      <strong>Template:</strong>{' '}
                       {templates.find(
                         (template) => template._id === selectedProject.template
-                      )?.title || "N/A"}
+                      )?.title || 'N/A'}
                     </Typography>
                     <Typography>
-                      <strong>Status:</strong>{" "}
+                      <strong>Status:</strong>{' '}
                       {selectedProject.status.charAt(0).toUpperCase() +
                         selectedProject.status.slice(1)}
                     </Typography>
@@ -3153,14 +3373,14 @@ const ProjectList = () => {
                   </AccordionSummary>
                   <AccordionDetails>
                     <Typography>
-                      <strong>Location Name:</strong>{" "}
-                      {selectedProject.location || "N/A"}
+                      <strong>Location Name:</strong>{' '}
+                      {selectedProject.location || 'N/A'}
                     </Typography>
                     <Typography>
-                      <strong>Markup:</strong>{" "}
+                      <strong>Markup:</strong>{' '}
                       {locations.find(
                         (loc) => loc.name === selectedProject.location
-                      )?.markup || "N/A"}
+                      )?.markup || 'N/A'}
                       %
                     </Typography>
                   </AccordionDetails>
@@ -3173,19 +3393,19 @@ const ProjectList = () => {
                   </AccordionSummary>
                   <AccordionDetails>
                     <Typography>
-                      <strong>Total Area:</strong> {selectedProject.totalArea}{" "}
+                      <strong>Total Area:</strong> {selectedProject.totalArea}{' '}
                       sqm
                     </Typography>
                     <Typography>
-                      <strong>Floor Height:</strong>{" "}
+                      <strong>Floor Height:</strong>{' '}
                       {selectedProject.avgFloorHeight} meters
                     </Typography>
                     <Typography>
-                      <strong>Number of Rooms:</strong>{" "}
+                      <strong>Number of Rooms:</strong>{' '}
                       {selectedProject.roomCount}
                     </Typography>
                     <Typography>
-                      <strong>Foundation Depth:</strong>{" "}
+                      <strong>Foundation Depth:</strong>{' '}
                       {selectedProject.foundationDepth} meters
                     </Typography>
                   </AccordionDetails>
@@ -3198,8 +3418,8 @@ const ProjectList = () => {
                   </AccordionSummary>
                   <AccordionDetails>
                     <Typography>
-                      <strong>Duration:</strong>{" "}
-                      {selectedProject.timeline.duration}{" "}
+                      <strong>Duration:</strong>{' '}
+                      {selectedProject.timeline.duration}{' '}
                       {selectedProject.timeline.unit}
                     </Typography>
                   </AccordionDetails>
@@ -3212,18 +3432,18 @@ const ProjectList = () => {
                   </AccordionSummary>
                   <AccordionDetails>
                     <Typography>
-                      <strong>Start Date:</strong>{" "}
+                      <strong>Start Date:</strong>{' '}
                       {selectedProject.startDate
                         ? new Date(
                             selectedProject.startDate
                           ).toLocaleDateString()
-                        : "N/A"}
+                        : 'N/A'}
                     </Typography>
                     <Typography>
-                      <strong>End Date:</strong>{" "}
+                      <strong>End Date:</strong>{' '}
                       {selectedProject.endDate
                         ? new Date(selectedProject.endDate).toLocaleDateString()
-                        : "N/A"}
+                        : 'N/A'}
                     </Typography>
                     {/* Postponed Dates */}
                     <Accordion>
@@ -3283,7 +3503,7 @@ const ProjectList = () => {
                                   <strong>Task Name:</strong> {task.name}
                                 </Typography>
                                 <Typography>
-                                  <strong>Task Progress:</strong>{" "}
+                                  <strong>Task Progress:</strong>{' '}
                                   {task.progress}%
                                 </Typography>
                               </Box>
@@ -3307,21 +3527,21 @@ const ProjectList = () => {
                     <Typography>
                       <strong>Total Project Cost:</strong> ₱
                       {selectedProject.bom.markedUpCosts?.totalProjectCost?.toLocaleString(
-                        "en-PH",
+                        'en-PH',
                         { minimumFractionDigits: 2 }
                       )}
                     </Typography>
                     <Typography>
                       <strong>Labor Cost:</strong> ₱
                       {selectedProject.bom.markedUpCosts?.laborCost?.toLocaleString(
-                        "en-PH",
+                        'en-PH',
                         { minimumFractionDigits: 2 }
                       )}
                     </Typography>
                     <Button
                       variant="contained"
                       color="secondary"
-                      onClick={() => handleGenerateBOMPDF("client")}
+                      onClick={() => handleGeneratePDF('client')}
                       sx={{ mt: 2, mr: 2 }}
                     >
                       Download BOM for Client
@@ -3329,7 +3549,7 @@ const ProjectList = () => {
                     <Button
                       variant="contained"
                       color="secondary"
-                      onClick={() => handleGenerateBOMPDF("Design Engineer")}
+                      onClick={() => handleGeneratePDF('designEngineer')}
                       sx={{ mt: 2 }}
                     >
                       Download BOM for Design Engineer
@@ -3383,7 +3603,7 @@ const ProjectList = () => {
             aria-describedby="alert-dialog-description"
           >
             <DialogTitle id="alert-dialog-title">
-              {"Confirm Delete"}
+              {'Confirm Delete'}
             </DialogTitle>
             <DialogContent>
               <Typography id="alert-dialog-description">
@@ -3398,7 +3618,7 @@ const ProjectList = () => {
                 color="secondary"
                 variant="contained"
                 autoFocus
-                disabled={selectedProject?.status === "finished"}
+                disabled={selectedProject?.status === 'finished'}
               >
                 Delete
               </Button>
@@ -3450,11 +3670,11 @@ const ProjectList = () => {
           maxWidth="lg"
         >
           <DialogTitle>
-            Generated BOM for {selectedProjectForBOM?.name || "Custom Project"}
+            Generated BOM for {selectedProjectForBOM?.name || 'Custom Project'}
             <IconButton
               aria-label="close"
               onClick={() => setBom(null)}
-              sx={{ position: "absolute", right: 8, top: 8 }}
+              sx={{ position: 'absolute', right: 8, top: 8 }}
             >
               <CloseIcon />
             </IconButton>
@@ -3494,8 +3714,8 @@ const ProjectList = () => {
                       <strong>Grand Total</strong>
                     </TableCell>
                     <TableCell>
-                      PHP{" "}
-                      {new Intl.NumberFormat("en-PH", {
+                      PHP{' '}
+                      {new Intl.NumberFormat('en-PH', {
                         minimumFractionDigits: 2,
                       }).format(
                         Math.ceil(bom.markedUpCosts.totalProjectCost * 100) /
@@ -3549,11 +3769,11 @@ const ProjectList = () => {
                       </TableCell>
                       <TableCell>
                         {bom.originalCosts.laborCost
-                          ? new Intl.NumberFormat("en-PH", {
-                              style: "currency",
-                              currency: "PHP",
+                          ? new Intl.NumberFormat('en-PH', {
+                              style: 'currency',
+                              currency: 'PHP',
                             }).format(bom.originalCosts.laborCost)
-                          : "N/A"}
+                          : 'N/A'}
                       </TableCell>
                     </TableRow>
                     <TableRow>
@@ -3562,11 +3782,11 @@ const ProjectList = () => {
                       </TableCell>
                       <TableCell>
                         {bom.originalCosts.totalProjectCost
-                          ? new Intl.NumberFormat("en-PH", {
-                              style: "currency",
-                              currency: "PHP",
+                          ? new Intl.NumberFormat('en-PH', {
+                              style: 'currency',
+                              currency: 'PHP',
                             }).format(bom.originalCosts.totalProjectCost)
-                          : "N/A"}
+                          : 'N/A'}
                       </TableCell>
                     </TableRow>
                     <TableRow>
@@ -3575,11 +3795,11 @@ const ProjectList = () => {
                       </TableCell>
                       <TableCell>
                         {bom.markedUpCosts.laborCost
-                          ? new Intl.NumberFormat("en-PH", {
-                              style: "currency",
-                              currency: "PHP",
+                          ? new Intl.NumberFormat('en-PH', {
+                              style: 'currency',
+                              currency: 'PHP',
                             }).format(bom.markedUpCosts.laborCost)
-                          : "N/A"}
+                          : 'N/A'}
                       </TableCell>
                     </TableRow>
                     <TableRow>
@@ -3588,11 +3808,11 @@ const ProjectList = () => {
                       </TableCell>
                       <TableCell>
                         {bom.markedUpCosts.totalProjectCost
-                          ? new Intl.NumberFormat("en-PH", {
-                              style: "currency",
-                              currency: "PHP",
+                          ? new Intl.NumberFormat('en-PH', {
+                              style: 'currency',
+                              currency: 'PHP',
                             }).format(bom.markedUpCosts.totalProjectCost)
-                          : "N/A"}
+                          : 'N/A'}
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -3631,27 +3851,27 @@ const ProjectList = () => {
                           <TableCell>{mat.item}</TableCell>
                           <TableCell>{mat.description}</TableCell>
                           <TableCell>
-                            {mat.quantity ? Math.ceil(mat.quantity) : "N/A"}
+                            {mat.quantity ? Math.ceil(mat.quantity) : 'N/A'}
                           </TableCell>
                           <TableCell>{mat.unit}</TableCell>
                           <TableCell>
-                            PHP{" "}
-                            {new Intl.NumberFormat("en-PH", {
+                            PHP{' '}
+                            {new Intl.NumberFormat('en-PH', {
                               minimumFractionDigits: 2,
                             }).format(mat.cost || 0)}
                           </TableCell>
                           <TableCell>
-                            PHP{" "}
-                            {new Intl.NumberFormat("en-PH", {
+                            PHP{' '}
+                            {new Intl.NumberFormat('en-PH', {
                               minimumFractionDigits: 2,
                             }).format(Math.ceil(mat.quantity) * mat.cost || 0)}
                           </TableCell>
                           <TableCell>
                             <div
                               style={{
-                                display: "flex",
-                                gap: "8px",
-                                flexWrap: "wrap",
+                                display: 'flex',
+                                gap: '8px',
+                                flexWrap: 'wrap',
                               }}
                             >
                               <Button
@@ -3686,14 +3906,14 @@ const ProjectList = () => {
             <Button
               variant="contained"
               color="secondary"
-              onClick={() => handleGenerateBOMPDF("client")}
+              onClick={() => handleGenerateBOMPDF('client')}
             >
               Download Client PDF
             </Button>
             <Button
               variant="contained"
               color="secondary"
-              onClick={() => handleGenerateBOMPDF("designEngineer")}
+              onClick={() => handleGenerateBOMPDF('designEngineer')}
             >
               Download Engineer PDF
             </Button>
@@ -3735,7 +3955,7 @@ const ProjectList = () => {
           Add New Material
           <IconButton
             onClick={() => setAddMaterialModalOpen(false)}
-            style={{ position: "absolute", right: 8, top: 8 }}
+            style={{ position: 'absolute', right: 8, top: 8 }}
           >
             <Close />
           </IconButton>
