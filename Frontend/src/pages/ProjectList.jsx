@@ -500,8 +500,10 @@ const ProjectList = () => {
         .finally(() => setIsLoadingBOM(false));
     }
   };
-
+  console.log(selectedProject?.bom?.markedUpCosts);
+  console.log('test', bom?.markedUpCosts);
   const handleGenerateBOMPDF = (version = 'client') => {
+    if (!bom) return;
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
     let yPosition = 20;
@@ -518,18 +520,22 @@ const ProjectList = () => {
     doc.setFontSize(15);
     doc.text('Generated BOM', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 10;
-    doc.text(`Project: ${selectedProject.bom.name || 'Custom'}`, 10, yPosition);
+    doc.text(
+      `Project: ${selectedProjectForBOM?.name || 'Custom'}`,
+      10,
+      yPosition
+    );
     yPosition += 10;
-    doc.text(`Total Area: ${selectedProject.bom.totalArea} sqm`, 10, yPosition);
+    doc.text(`Total Area: ${bom.projectDetails.totalArea} sqm`, 10, yPosition);
     yPosition += 10;
     doc.text(
-      `Number of Floors: ${selectedProject.bom.numFloors}`,
+      `Number of Floors: ${bom.projectDetails.numFloors}`,
       10,
       yPosition
     );
     yPosition += 10;
     doc.text(
-      `Floor Height: ${selectedProject.bom.avgFloorHeight} meters`,
+      `Floor Height: ${bom.projectDetails.avgFloorHeight} meters`,
       10,
       yPosition
     );
@@ -2139,208 +2145,211 @@ const ProjectList = () => {
     setSelectedProject(project);
     setShowDeleteModal(true);
   };
-  const handleGeneratePDF = (version = 'client') => {
-    if (!selectedProject?.bom) {
-      alert('No BOM data available for this project.');
-      return;
-    }
 
+  const handleGeneratePDF = (version = 'client') => {
+    if (!selectedProject) return;
+    const bom = selectedProject.bom;
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
     let yPosition = 20;
 
-    try {
-      // --- Header Logo ---
-      if (sorianoLogo) {
-        doc.addImage(
-          sorianoLogo,
-          'JPEG',
-          20,
-          10,
-          pageWidth - 40,
-          (pageWidth - 40) * 0.2
-        );
-        yPosition += 30;
-      }
+    doc.addImage(
+      sorianoLogo,
+      'JPEG',
+      20,
+      10,
+      pageWidth - 40,
+      (pageWidth - 40) * 0.2
+    );
+    yPosition += 30;
+    doc.setFontSize(15);
+    doc.text('Generated BOM', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 10;
+    doc.text(`Project: ${selectedProject?.name || 'Custom'}`, 10, yPosition);
+    yPosition += 10;
+    doc.text(`Total Area: ${bom.projectDetails.totalArea} sqm`, 10, yPosition);
+    yPosition += 10;
+    doc.text(
+      `Number of Floors: ${bom.projectDetails.numFloors}`,
+      10,
+      yPosition
+    );
+    yPosition += 10;
+    doc.text(
+      `Floor Height: ${bom.projectDetails.avgFloorHeight} meters`,
+      10,
+      yPosition
+    );
+    yPosition += 10;
 
-      // --- Title ---
-      doc.setFontSize(15);
-      doc.text('Generated Bill of Materials (BOM)', pageWidth / 2, yPosition, {
-        align: 'center',
-      });
+    if (version === 'client') {
+      // Formatting the Grand Total text
+      doc.text(
+        `Grand Total: PHP ${new Intl.NumberFormat('en-PH', {
+          minimumFractionDigits: 2,
+        }).format(
+          Math.ceil(bom.markedUpCosts.totalProjectCost * 100) / 100 || 0
+        )}`,
+        10,
+        yPosition
+      );
       yPosition += 15;
 
-      // --- Project Details ---
-      const bom = selectedProject.bom;
-      const projectDetails = [
-        `Project: ${bom.name || 'Custom'}`,
-        `Total Area: ${bom.totalArea || 0} sqm`,
-        `Number of Floors: ${bom.numFloors || 0}`,
-        `Floor Height: ${bom.avgFloorHeight || 0} meters`,
-      ];
+      // Loop through the categories
+      bom.categories.forEach((cat, categoryIndex) => {
+        // Category title
+        doc.text(cat.category.toUpperCase(), 10, yPosition);
+        yPosition += 5;
 
-      doc.setFontSize(12);
-      projectDetails.forEach((line) => {
-        doc.text(line, 10, yPosition);
-        yPosition += 8;
+        // AutoTable for the materials in the category
+        doc.autoTable({
+          head: [
+            [
+              'Item',
+              'Description',
+              'Quantity',
+              'Unit',
+              'Unit Cost (PHP)',
+              'Total Amount (PHP)',
+            ],
+          ],
+          body: cat.materials.map((material, index) => [
+            `${categoryIndex + 1}.${index + 1}`, // Item number
+            material.description || 'N/A', // Description
+            material.quantity ? Math.ceil(material.quantity) : 'N/A', // Rounded-up Quantity
+            material.unit || 'N/A', // Unit
+            `PHP ${new Intl.NumberFormat('en-PH', {
+              style: 'decimal',
+              minimumFractionDigits: 2,
+            }).format(material.cost)}`, // Unit Cost
+            `PHP ${new Intl.NumberFormat('en-PH', {
+              style: 'decimal',
+              minimumFractionDigits: 2,
+            }).format(Math.ceil(material.totalAmount * 100) / 100 || 0)}`,
+          ]),
+          startY: yPosition,
+          headStyles: { fillColor: [41, 128, 185] },
+          bodyStyles: { textColor: [44, 62, 80] },
+        });
+
+        // Update yPosition after rendering the table
+        yPosition = doc.lastAutoTable.finalY + 5;
       });
+    } else {
+      // Contractor-specific details
+      const originalProjectCost = `PHP ${new Intl.NumberFormat('en-PH', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(Math.ceil(bom.originalCosts.totalProjectCost * 100) / 100)}`;
 
-      const formatPHP = (value) =>
-        `PHP ${new Intl.NumberFormat('en-PH', {
+      const originalLaborCost = `PHP ${new Intl.NumberFormat('en-PH', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(Math.ceil(bom.originalCosts.laborCost * 100) / 100)}`;
+
+      const markup = bom.projectDetails.location.markup;
+
+      const markedUpProjectCost = `PHP ${new Intl.NumberFormat('en-PH', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(Math.ceil(bom.markedUpCosts.totalProjectCost * 100) / 100)}`;
+
+      const markedUpLaborCost = `PHP ${new Intl.NumberFormat('en-PH', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(Math.ceil(bom.markedUpCosts.laborCost * 100) / 100)}`;
+
+      doc.setFontSize(15);
+      doc.text('Design Engineer Cost Breakdown', 10, yPosition);
+      yPosition += 10;
+      doc.setFontSize(15);
+      doc.text(
+        `Original Project Cost (without markup): ${originalProjectCost}`,
+        10,
+        yPosition
+      );
+      yPosition += 10;
+      doc.text(
+        `Original Labor Cost (without markup): ${originalLaborCost}`,
+        10,
+        yPosition
+      );
+      yPosition += 10;
+      doc.text(
+        `Location: ${bom.projectDetails.location.name} (Markup: ${markup}%)`,
+        10,
+        yPosition
+      );
+      yPosition += 10;
+      doc.text(`Marked-Up Project Cost: ${markedUpProjectCost}`, 10, yPosition);
+      yPosition += 10;
+      doc.text(`Marked-Up Labor Cost: ${markedUpLaborCost}`, 10, yPosition);
+      yPosition += 20;
+
+      // Detailed table with totals for each category
+      bom.categories.forEach((category, categoryIndex) => {
+        doc.setFontSize(12);
+        doc.text(category.category.toUpperCase(), 10, yPosition);
+        yPosition += 5;
+
+        doc.autoTable({
+          head: [
+            [
+              'Item',
+              'Description',
+              'Quantity',
+              'Unit',
+              'Unit Cost (PHP)',
+              'Total Amount (PHP)',
+            ],
+          ],
+          body: category.materials.map((material, index) => [
+            `${categoryIndex + 1}.${index + 1}`,
+            material.description || 'N/A',
+            material.quantity ? Math.ceil(material.quantity) : 'N/A', // Rounded-up Quantity
+            material.unit || 'N/A',
+            `PHP ${new Intl.NumberFormat('en-PH', {
+              style: 'decimal',
+              minimumFractionDigits: 2,
+            }).format(material.cost)}`,
+            `PHP ${new Intl.NumberFormat('en-PH', {
+              style: 'decimal',
+              minimumFractionDigits: 2,
+            }).format(Math.ceil(material.totalAmount * 100) / 100 || 0)}`,
+          ]),
+          startY: yPosition,
+          headStyles: { fillColor: [41, 128, 185] },
+          bodyStyles: { textColor: [44, 62, 80] },
+        });
+
+        yPosition = doc.lastAutoTable.finalY + 5;
+
+        // Add total for each category
+        const categoryTotal = `PHP ${new Intl.NumberFormat('en-PH', {
+          style: 'decimal',
           minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }).format(value || 0)}`;
-
-      yPosition += 5;
-
-      // --- Client Version ---
-      if (version === 'client') {
-        const grandTotal =
-          Math.ceil(bom.markedUpCosts.totalProjectCost * 100) / 100;
-        doc.setFontSize(13);
-        doc.text(`Grand Total: ${formatPHP(grandTotal)}`, 10, yPosition);
-        yPosition += 15;
-
-        // Loop through categories
-        bom.categories.forEach((cat, categoryIndex) => {
-          doc.setFontSize(12);
-          doc.text(cat.category.toUpperCase(), 10, yPosition);
-          yPosition += 5;
-
-          doc.autoTable({
-            head: [
-              [
-                'Item',
-                'Description',
-                'Quantity',
-                'Unit',
-                'Unit Cost (PHP)',
-                'Total Amount (PHP)',
-              ],
-            ],
-            body: cat.materials.map((material, index) => [
-              `${categoryIndex + 1}.${index + 1}`,
-              material.description || 'N/A',
-              material.quantity ? Math.ceil(material.quantity) : 'N/A',
-              material.unit || 'N/A',
-              formatPHP(material.cost),
-              formatPHP(Math.ceil(material.totalAmount * 100) / 100),
-            ]),
-            startY: yPosition,
-            theme: 'striped',
-            headStyles: { fillColor: [41, 128, 185] },
-            bodyStyles: { textColor: [44, 62, 80] },
-            styles: { fontSize: 10 },
-            didDrawPage: (data) => {
-              yPosition = data.cursor.y + 10;
-            },
-          });
-
-          yPosition = doc.lastAutoTable.finalY + 10;
-
-          // Add page if content overflows
-          if (yPosition > pageHeight - 40) {
-            doc.addPage();
-            yPosition = 20;
-          }
-        });
-      }
-
-      // --- Contractor Version ---
-      else {
-        const { originalCosts, markedUpCosts, projectDetails: project } = bom;
-        const markup = project?.location?.markup || 0;
-        const locationName = project?.location?.name || 'Unknown';
-
-        const infoLines = [
-          'Design Engineer Cost Breakdown',
-          `Original Project Cost (no markup): ${formatPHP(
-            originalCosts.totalProjectCost
-          )}`,
-          `Original Labor Cost (no markup): ${formatPHP(
-            originalCosts.laborCost
-          )}`,
-          `Location: ${locationName} (Markup: ${markup}%)`,
-          `Marked-Up Project Cost: ${formatPHP(
-            markedUpCosts.totalProjectCost
-          )}`,
-          `Marked-Up Labor Cost: ${formatPHP(markedUpCosts.laborCost)}`,
-        ];
-
-        doc.setFontSize(13);
-        infoLines.forEach((line) => {
-          doc.text(line, 10, yPosition);
-          yPosition += 8;
-        });
-
-        yPosition += 10;
-
-        bom.categories.forEach((category, categoryIndex) => {
-          doc.setFontSize(12);
-          doc.text(category.category.toUpperCase(), 10, yPosition);
-          yPosition += 5;
-
-          doc.autoTable({
-            head: [
-              [
-                'Item',
-                'Description',
-                'Quantity',
-                'Unit',
-                'Unit Cost (PHP)',
-                'Total Amount (PHP)',
-              ],
-            ],
-            body: category.materials.map((material, index) => [
-              `${categoryIndex + 1}.${index + 1}`,
-              material.description || 'N/A',
-              material.quantity ? Math.ceil(material.quantity) : 'N/A',
-              material.unit || 'N/A',
-              formatPHP(material.cost),
-              formatPHP(Math.ceil(material.totalAmount * 100) / 100),
-            ]),
-            startY: yPosition,
-            theme: 'striped',
-            headStyles: { fillColor: [41, 128, 185] },
-            bodyStyles: { textColor: [44, 62, 80] },
-            styles: { fontSize: 10 },
-            didDrawPage: (data) => {
-              yPosition = data.cursor.y + 10;
-            },
-          });
-
-          yPosition = doc.lastAutoTable.finalY + 8;
-
-          // Add category total
-          const categoryTotal = category.materials.reduce(
-            (sum, m) => sum + (m.totalAmount || 0),
+        }).format(
+          category.materials.reduce(
+            (sum, material) => sum + material.totalAmount,
             0
-          );
-          doc.text(
-            `Total for ${category.category.toUpperCase()}: ${formatPHP(
-              categoryTotal
-            )}`,
-            10,
-            yPosition
-          );
-          yPosition += 15;
-
-          if (yPosition > pageHeight - 40) {
-            doc.addPage();
-            yPosition = 20;
-          }
-        });
-      }
-
-      // --- Save File ---
-      doc.save(`BOM_${version}.pdf`);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+          )
+        )}`;
+        doc.text(
+          `Total for ${category.category.toUpperCase()}: ${categoryTotal}`,
+          10,
+          yPosition
+        );
+        yPosition += 15;
+      });
     }
-  };
 
+    // Save the PDF with the selected version
+    doc.save(`BOM_${version}.pdf`);
+  };
   // Filter projects based on search term
   const filterProjects = () => {
     if (!searchTerm) return projects;
