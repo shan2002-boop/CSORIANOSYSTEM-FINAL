@@ -1,8 +1,8 @@
-const { default: mongoose } = require("mongoose");
-const Project = require("../models/projectModel");
-const User = require("../models/usersModel");
-const Template = require("../models/templatesModel");
-const { DateTime } = require("luxon");
+const { default: mongoose } = require('mongoose');
+const Project = require('../models/projectModel');
+const User = require('../models/usersModel');
+const Template = require('../models/templatesModel');
+const { DateTime } = require('luxon');
 
 const calculateCumulativeDelay = (project) => {
   let totalDelay = 0;
@@ -80,7 +80,7 @@ const applyHybridProgress = (project) => {
     });
   });
 
-  project.markModified("floors"); // Indicate floors array has been modified for Mongoose
+  project.markModified('floors'); // Indicate floors array has been modified for Mongoose
   return project;
 };
 
@@ -94,7 +94,7 @@ const calculateProgress = (project) => {
 
   const currentDate = new Date();
   const timelineInDays =
-    project.timeline.unit === "weeks"
+    project.timeline.unit === 'weeks'
       ? project.timeline.duration * 7
       : project.timeline.duration * 30;
   const cumulativeDelay = calculateCumulativeDelay(project);
@@ -131,18 +131,18 @@ const getProjectsByContractor = async (req, res) => {
   if (!contractorUsername) {
     return res
       .status(401)
-      .json({ error: "Contractor information missing in the request" });
+      .json({ error: 'Contractor information missing in the request' });
   }
 
   try {
     const projects = await Project.find({ contractor: contractorUsername })
-      .populate("location")
+      .populate('location')
       .sort({ createdAt: -1 });
 
     res.status(200).json(projects);
   } catch (error) {
-    console.error("Error fetching projects:", error);
-    res.status(500).json({ error: "Failed to fetch projects" });
+    console.error('Error fetching projects:', error);
+    res.status(500).json({ error: 'Failed to fetch projects' });
   }
 };
 
@@ -183,7 +183,7 @@ const createProject = async (req, res) => {
 
     const templateObject = await Template.findById(template);
     if (!templateObject) {
-      return res.status(404).json({ error: "Template not found." });
+      return res.status(404).json({ error: 'Template not found.' });
     }
 
     // Validate required fields
@@ -200,7 +200,7 @@ const createProject = async (req, res) => {
     ) {
       return res
         .status(400)
-        .json({ error: "Required fields are missing or invalid." });
+        .json({ error: 'Required fields are missing or invalid.' });
     }
 
     // Generate floors with decreasing weights based on floor order
@@ -228,7 +228,7 @@ const createProject = async (req, res) => {
       roomCount,
       foundationDepth,
       projectImage, // Add this field
-      status: "not started",
+      status: 'not started',
       startDate: now,
       referenceDate: now,
       isAutomaticProgress: false,
@@ -236,10 +236,10 @@ const createProject = async (req, res) => {
 
     res.status(201).json({ success: true, data: project });
   } catch (error) {
-    console.error("Error creating project:", error);
+    console.error('Error creating project:', error);
     res
       .status(500)
-      .json({ error: "Failed to create project.", details: error.message });
+      .json({ error: 'Failed to create project.', details: error.message });
   }
 };
 
@@ -258,7 +258,7 @@ const getProjectForUser = async (req, res) => {
   try {
     const username = req.user.Username;
     if (!username) {
-      return res.status(401).json({ error: "User information is missing" });
+      return res.status(401).json({ error: 'User information is missing' });
     }
 
     const projects = await Project.find({ user: username }).sort({
@@ -268,14 +268,14 @@ const getProjectForUser = async (req, res) => {
     if (!projects.length) {
       return res
         .status(404)
-        .json({ message: "No projects found for this user." });
+        .json({ message: 'No projects found for this user.' });
     }
 
     res.status(200).json(projects);
   } catch (error) {
-    console.error("Error fetching projects for user:", error);
+    console.error('Error fetching projects for user:', error);
     res.status(500).json({
-      message: "Server error. Please try again later.",
+      message: 'Server error. Please try again later.',
       details: error.message,
     });
   }
@@ -288,12 +288,12 @@ const updateFloorProgress = async (req, res) => {
   try {
     const project = await Project.findById(req.params.projectId);
     if (!project) {
-      return res.status(404).json({ message: "Project not found" });
+      return res.status(404).json({ message: 'Project not found' });
     }
 
     const floor = project.floors.id(req.params.floorId);
     if (!floor) {
-      return res.status(404).json({ message: "Floor not found" });
+      return res.status(404).json({ message: 'Floor not found' });
     }
 
     floor.progress = Math.round(progress);
@@ -309,7 +309,7 @@ const updateFloorProgress = async (req, res) => {
     await project.save();
     res.status(200).json(project);
   } catch (error) {
-    console.error("Error updating floor progress:", error);
+    console.error('Error updating floor progress:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -319,20 +319,20 @@ const getProjectById = async (req, res) => {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: "Invalid project ID format" });
+    return res.status(400).json({ message: 'Invalid project ID format' });
   }
 
   try {
     const project = await Project.findById(id);
 
     if (!project) {
-      return res.status(404).json({ message: "Project not found" });
+      return res.status(404).json({ message: 'Project not found' });
     }
 
     res.status(200).json(project);
   } catch (error) {
-    console.error("Error fetching project:", error);
-    res.status(500).json({ message: "Error fetching project" });
+    console.error('Error fetching project:', error);
+    res.status(500).json({ message: 'Error fetching project' });
   }
 };
 
@@ -342,16 +342,16 @@ const startProject = async (req, res) => {
   const { id } = req.params;
   try {
     const project = await Project.findById(id);
-    if (!project) return res.status(404).json({ error: "Project not found" });
+    if (!project) return res.status(404).json({ error: 'Project not found' });
 
     // Only set startDate and referenceDate if the project is starting for the first time
-    if (project.status === "not started") {
+    if (project.status === 'not started') {
       const now = new Date();
       project.startDate = now; // Set startDate to now
       project.referenceDate = now; // Set referenceDate to start from today
     }
 
-    project.status = "ongoing";
+    project.status = 'ongoing';
     await project.save();
 
     res.status(200).json({ success: true, project });
@@ -365,10 +365,10 @@ const endProject = async (req, res) => {
   const { id } = req.params;
   try {
     const project = await Project.findById(id);
-    if (!project) return res.status(404).json({ error: "Project not found" });
+    if (!project) return res.status(404).json({ error: 'Project not found' });
 
     // Update the end date and status
-    project.status = "finished";
+    project.status = 'finished';
     project.endDate = new Date(); // Store the end date
     await project.save();
 
@@ -382,9 +382,9 @@ const resumeProject = async (req, res) => {
   const { id } = req.params;
   try {
     const project = await Project.findById(id);
-    if (!project) return res.status(404).json({ error: "Project not found" });
+    if (!project) return res.status(404).json({ error: 'Project not found' });
 
-    project.status = "ongoing";
+    project.status = 'ongoing';
     const resumedDate = new Date();
     project.resumedDates.push(resumedDate);
 
@@ -405,9 +405,9 @@ const postponeProject = async (req, res) => {
   const { id } = req.params;
   try {
     const project = await Project.findById(id);
-    if (!project) return res.status(404).json({ error: "Project not found" });
+    if (!project) return res.status(404).json({ error: 'Project not found' });
 
-    project.status = "postponed";
+    project.status = 'postponed';
     project.postponedDates.push(new Date());
 
     // Do not modify referenceDate
@@ -427,18 +427,18 @@ const resetFloorProgressToAutomatic = async (req, res) => {
 
     const project = await Project.findById(projectId);
     if (!project) {
-      return res.status(404).json({ message: "Project not found" });
+      return res.status(404).json({ message: 'Project not found' });
     }
 
     const floor = project.floors.id(floorId);
     if (!floor) {
-      return res.status(404).json({ message: "Floor not found" });
+      return res.status(404).json({ message: 'Floor not found' });
     }
 
     if (!floor.isManual) {
       return res
         .status(400)
-        .json({ message: "Floor progress is already in automatic mode." });
+        .json({ message: 'Floor progress is already in automatic mode.' });
     }
 
     // Reset the manual flag
@@ -448,17 +448,17 @@ const resetFloorProgressToAutomatic = async (req, res) => {
     project.referenceDate = new Date();
 
     // Mark the floors array as modified
-    project.markModified("floors");
+    project.markModified('floors');
 
     // Save the updated project
     await project.save();
 
     res
       .status(200)
-      .json({ message: "Floor progress reset to automatic mode.", project });
+      .json({ message: 'Floor progress reset to automatic mode.', project });
   } catch (error) {
     res.status(500).json({
-      error: "Failed to reset floor progress.",
+      error: 'Failed to reset floor progress.',
       details: error.message,
     });
   }
@@ -470,16 +470,16 @@ const updateProjectStatus = async (req, res) => {
 
   try {
     const project = await Project.findById(id);
-    if (!project) return res.status(404).json({ error: "Project not found" });
+    if (!project) return res.status(404).json({ error: 'Project not found' });
 
     project.updateStatus(status);
     await project.save();
 
     res.status(200).json({ success: true, project });
   } catch (error) {
-    console.error("Error updating project status:", error);
+    console.error('Error updating project status:', error);
     res.status(500).json({
-      error: "Failed to update project status.",
+      error: 'Failed to update project status.',
       details: error.message,
     });
   }
@@ -492,13 +492,13 @@ const saveBOMToProject = async (req, res) => {
   try {
     const project = await Project.findById(id);
     if (!project) {
-      return res.status(404).json({ message: "Project not found." });
+      return res.status(404).json({ message: 'Project not found.' });
     }
 
     if (!bom || !bom.categories || !bom.categories.length) {
       return res
         .status(400)
-        .json({ message: "BOM must include categories and materials data." });
+        .json({ message: 'BOM must include categories and materials data.' });
     }
 
     // Format the materials within each category
@@ -528,9 +528,9 @@ const saveBOMToProject = async (req, res) => {
 
     res.status(200).json({ success: true, project });
   } catch (error) {
-    console.error("Error saving BOM to project:", error);
+    console.error('Error saving BOM to project:', error);
     res.status(500).json({
-      error: "Failed to save BOM to project.",
+      error: 'Failed to save BOM to project.',
       details: error.message,
     });
   }
@@ -540,7 +540,7 @@ const updateProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
     if (!project)
-      return res.status(404).json({ message: "Project not found." });
+      return res.status(404).json({ message: 'Project not found.' });
 
     // Extract fields from req.body
     const {
@@ -566,7 +566,8 @@ const updateProject = async (req, res) => {
     if (totalArea !== undefined) project.totalArea = totalArea;
     if (avgFloorHeight !== undefined) project.avgFloorHeight = avgFloorHeight;
     if (roomCount !== undefined) project.roomCount = roomCount;
-    if (foundationDepth !== undefined) project.foundationDepth = foundationDepth;
+    if (foundationDepth !== undefined)
+      project.foundationDepth = foundationDepth;
     if (timeline !== undefined) project.timeline = timeline;
     if (projectImage !== undefined) project.projectImage = projectImage; // Handle Cloudinary URL
 
@@ -575,41 +576,56 @@ const updateProject = async (req, res) => {
       // For each floor in the request
       floors.forEach((floorData, floorIndex) => {
         // Find the corresponding floor in the project
-        const projectFloor = project.floors.id(floorData._id) || project.floors[floorIndex];
-        
+        const projectFloor =
+          project.floors.id(floorData._id) || project.floors[floorIndex];
+
         if (projectFloor) {
           // Update floor properties
           if (floorData.name !== undefined) projectFloor.name = floorData.name;
-          if (floorData.progress !== undefined) projectFloor.progress = floorData.progress;
-          if (floorData.isManual !== undefined) projectFloor.isManual = floorData.isManual;
-          if (floorData.complexityWeight !== undefined) projectFloor.complexityWeight = floorData.complexityWeight;
-          
+          if (floorData.progress !== undefined)
+            projectFloor.progress = floorData.progress;
+          if (floorData.isManual !== undefined)
+            projectFloor.isManual = floorData.isManual;
+          if (floorData.complexityWeight !== undefined)
+            projectFloor.complexityWeight = floorData.complexityWeight;
+
           // Update floor images if provided
-          if (floorData.images !== undefined && Array.isArray(floorData.images)) {
+          if (
+            floorData.images !== undefined &&
+            Array.isArray(floorData.images)
+          ) {
             projectFloor.images = floorData.images;
           }
-          
+
           // Update tasks if provided
           if (floorData.tasks !== undefined && Array.isArray(floorData.tasks)) {
             floorData.tasks.forEach((taskData, taskIndex) => {
               // Find the corresponding task in the floor
-              const floorTask = projectFloor.tasks.id(taskData._id) || projectFloor.tasks[taskIndex];
-              
+              const floorTask =
+                projectFloor.tasks.id(taskData._id) ||
+                projectFloor.tasks[taskIndex];
+
               if (floorTask) {
                 // Update task properties
                 if (taskData.name !== undefined) floorTask.name = taskData.name;
-                if (taskData.progress !== undefined) floorTask.progress = taskData.progress;
-                if (taskData.isManual !== undefined) floorTask.isManual = taskData.isManual;
-                if (taskData.complexityWeight !== undefined) floorTask.complexityWeight = taskData.complexityWeight;
-                
+                if (taskData.progress !== undefined)
+                  floorTask.progress = taskData.progress;
+                if (taskData.isManual !== undefined)
+                  floorTask.isManual = taskData.isManual;
+                if (taskData.complexityWeight !== undefined)
+                  floorTask.complexityWeight = taskData.complexityWeight;
+
                 // Update task images if provided
-                if (taskData.images !== undefined && Array.isArray(taskData.images)) {
+                if (
+                  taskData.images !== undefined &&
+                  Array.isArray(taskData.images)
+                ) {
                   floorTask.images = taskData.images;
                 }
               } else if (taskData._id === undefined) {
                 // This is a new task, add it
                 projectFloor.tasks.push({
-                  name: taskData.name || "",
+                  name: taskData.name || '',
                   progress: taskData.progress || 0,
                   isManual: taskData.isManual || false,
                   complexityWeight: taskData.complexityWeight || 1,
@@ -617,14 +633,15 @@ const updateProject = async (req, res) => {
                 });
               }
             });
-            
+
             // Remove tasks that are not in the request
             const requestedTaskIds = floorData.tasks
-              .map(task => task._id)
-              .filter(id => id !== undefined);
-              
-            projectFloor.tasks = projectFloor.tasks.filter(task => 
-              !task._id || requestedTaskIds.includes(task._id.toString())
+              .map((task) => task._id)
+              .filter((id) => id !== undefined);
+
+            projectFloor.tasks = projectFloor.tasks.filter(
+              (task) =>
+                !task._id || requestedTaskIds.includes(task._id.toString())
             );
           }
         } else if (floorData._id === undefined) {
@@ -639,14 +656,15 @@ const updateProject = async (req, res) => {
           });
         }
       });
-      
+
       // Remove floors that are not in the request
       const requestedFloorIds = floors
-        .map(floor => floor._id)
-        .filter(id => id !== undefined);
-        
-      project.floors = project.floors.filter(floor => 
-        !floor._id || requestedFloorIds.includes(floor._id.toString())
+        .map((floor) => floor._id)
+        .filter((id) => id !== undefined);
+
+      project.floors = project.floors.filter(
+        (floor) =>
+          !floor._id || requestedFloorIds.includes(floor._id.toString())
       );
     }
 
@@ -654,21 +672,21 @@ const updateProject = async (req, res) => {
     project.applyHybridProgress();
 
     await project.save();
-    
+
     // Populate the template if needed before sending response
     const populatedProject = await Project.findById(project._id)
       .populate('template')
       .populate('location');
 
-    res.status(200).json({ 
-      success: true, 
-      project: populatedProject 
+    res.status(200).json({
+      success: true,
+      project: populatedProject,
     });
   } catch (error) {
-    console.error("Error updating project:", error);
-    res.status(500).json({ 
-      error: "Failed to update project.", 
-      details: error.message 
+    console.error('Error updating project:', error);
+    res.status(500).json({
+      error: 'Failed to update project.',
+      details: error.message,
     });
   }
 };
@@ -679,7 +697,7 @@ const toggleProgressMode = async (req, res) => {
     const { isAutomatic } = req.body;
 
     const project = await Project.findById(id);
-    if (!project) return res.status(404).json({ message: "Project not found" });
+    if (!project) return res.status(404).json({ message: 'Project not found' });
 
     project.isAutomaticProgress = isAutomatic;
 
@@ -708,9 +726,9 @@ const toggleProgressMode = async (req, res) => {
 
     res.status(200).json({ success: true, project });
   } catch (error) {
-    console.error("Error toggling progress mode:", error);
+    console.error('Error toggling progress mode:', error);
     res.status(500).json({
-      error: "Failed to toggle progress mode",
+      error: 'Failed to toggle progress mode',
       details: error.message,
     });
   }
@@ -720,21 +738,14 @@ const deleteProject = async (req, res) => {
   try {
     const project = await Project.findByIdAndDelete(req.params.id);
     if (!project) {
-      return res.status(404).json({ message: "Project not found." });
+      return res.status(404).json({ message: 'Project not found.' });
     }
-
-    // Optional: Handle cascade deletions for related data
-    // For example, delete associated audit logs
-    /*
-    await AuditLog.deleteMany({ projectId: project._id });
-    */
-
-    res.status(200).json({ message: "Project deleted successfully." });
+    res.status(200).json({ message: 'Project deleted successfully.' });
   } catch (error) {
-    console.error("Error deleting project:", error);
+    console.error('Error deleting project:', error);
     res
       .status(500)
-      .json({ error: "Failed to delete project.", details: error.message });
+      .json({ error: 'Failed to delete project.', details: error.message });
   }
 };
 
