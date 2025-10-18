@@ -102,7 +102,6 @@ const MaterialSearchModal = ({
   onMaterialSelect,
   materialToReplace,
   user,
-  onMaterialAdd,
 }) => {
   const [materials, setMaterials] = useState([]);
   const [filteredMaterials, setFilteredMaterials] = useState([]);
@@ -221,6 +220,196 @@ const MaterialSearchModal = ({
   );
 };
 
+const AddMaterialModal = ({
+  isOpen,
+  onClose,
+  onMaterialAdd,  // This should be for adding materials
+  user,
+}) => {
+  const [materials, setMaterials] = useState([]);
+  const [filteredMaterials, setFilteredMaterials] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    if (isOpen && user && user.token) {
+      axios
+        .get(`${import.meta.env.VITE_LOCAL_URL}/api/materials`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        })
+        .then((response) => {
+          setMaterials(response.data);
+          setFilteredMaterials(response.data);
+        })
+        .catch((error) => {
+          console.error('Error fetching materials:', error);
+        });
+    }
+  }, [isOpen, user]);
+
+  useEffect(() => {
+    if (searchTerm === '') {
+      setFilteredMaterials(materials);
+    } else {
+      const filtered = materials.filter((material) =>
+        (material.description || '')
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
+      );
+      setFilteredMaterials(filtered);
+    }
+  }, [searchTerm, materials]);
+
+  // NEW: Handle material selection for ADDING (not replacing)
+  const handleMaterialSelectForAdd = (material) => {
+    if (onMaterialAdd) {
+      onMaterialAdd(material);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onClose={onClose} fullWidth maxWidth="md">
+      <DialogTitle>
+        Add Material to BOM
+        <IconButton
+          onClick={onClose}
+          style={{ position: 'absolute', right: 8, top: 8 }}
+        >
+          <Close />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent dividers>
+        <Box display="flex" gap={2} mb={2}>
+          <TextField
+            fullWidth
+            variant="outlined"
+            label="Search materials"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            margin="dense"
+          />
+        </Box>
+        {filteredMaterials.length > 0 ? (
+          <TableContainer style={{ maxHeight: 400 }}>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Description</TableCell>
+                  <TableCell>Unit</TableCell>
+                  <TableCell>Cost (₱)</TableCell>
+                  <TableCell>Specifications</TableCell>
+                  <TableCell align="center">Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredMaterials.map((material) => (
+                  <TableRow key={material._id} hover>
+                    <TableCell>
+                      {material.description || 'No Description Available'}
+                    </TableCell>
+                    <TableCell>{material.unit || 'N/A'}</TableCell>
+                    <TableCell>{material.cost?.toFixed(2) || '0.00'}</TableCell>
+                    <TableCell>{material.specifications || 'N/A'}</TableCell>
+                    <TableCell align="center">
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        onClick={() => handleMaterialSelectForAdd(material)} // Use the new function
+                      >
+                        Add to BOM
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : (
+          <Typography>No materials found</Typography>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} color="secondary">
+          Close
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+const AddQuantityModal = ({
+  isOpen,
+  onClose,
+  selectedMaterial,
+  additionalQuantity,
+  onQuantityChange,
+  onAddQuantity
+}) => {
+  return (
+    <Dialog open={isOpen} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>
+        Add Quantity to Material
+        <IconButton
+          onClick={onClose}
+          style={{ position: 'absolute', right: 8, top: 8 }}
+        >
+          <Close />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent dividers>
+        <Typography variant="h6" gutterBottom>
+          {selectedMaterial?.description || 'Selected Material'}
+        </Typography>
+        
+        <Box mb={2}>
+          <Typography variant="body2" color="textSecondary">
+            Current Quantity: {selectedMaterial?.quantity || 0} {selectedMaterial?.unit || ''}
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            Unit Cost: PHP {selectedMaterial?.cost?.toFixed(2) || '0.00'}
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            Current Total: PHP {selectedMaterial?.totalAmount?.toFixed(2) || '0.00'}
+          </Typography>
+        </Box>
+
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Additional Quantity"
+          type="number"
+          value={additionalQuantity}
+          onChange={(e) => onQuantityChange(parseFloat(e.target.value) || 0)}
+          inputProps={{ min: 0.01, step: 0.01 }}
+          required
+        />
+        
+        <Box mt={2} p={2} sx={{ backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+          <Typography variant="body2">
+            <strong>New Total Quantity:</strong> {(selectedMaterial?.quantity || 0) + additionalQuantity} {selectedMaterial?.unit || ''}
+          </Typography>
+          <Typography variant="body2">
+            <strong>New Total Amount:</strong> PHP {((selectedMaterial?.cost || 0) * ((selectedMaterial?.quantity || 0) + additionalQuantity)).toFixed(2)}
+          </Typography>
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          onClick={onAddQuantity}
+          variant="contained"
+          color="primary"
+          disabled={additionalQuantity <= 0}
+        >
+          Add Quantity
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 const ProjectList = () => {
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -276,8 +465,79 @@ const ProjectList = () => {
   const [chatProjectName, setChatProjectName] = useState(null);
   const [isChat, setIsChat] = useState(false);
   const [materialToReplace, setMaterialToReplace] = useState(null);
+  const [addMaterialModalOpen, setAddMaterialModalOpen] = useState(false);
   const [materialModalOpen, setMaterialModalOpen] = useState(false);
+  const [materialToAdd, setMaterialToAdd] = useState(null);
+  const [selectedMaterial, setSelectedMaterial] = useState(null);
+  const [additionalQuantity, setAdditionalQuantity] = useState(0);
+  const [addQuantityModalOpen, setAddQuantityModalOpen] = useState(false);
+  
 
+  const handleAddQuantityClick = (material) => {
+  console.log('Add quantity clicked for:', material);
+  
+  // Set the selected material and open the add quantity modal
+  setSelectedMaterial(material);
+  setAdditionalQuantity(0); // Reset to 0
+  setAddQuantityModalOpen(true);
+};
+
+const handleAddQuantity = () => {
+  if (!selectedMaterial || !bom) return;
+
+  console.log('Adding quantity:', additionalQuantity, 'to material:', selectedMaterial);
+
+  const updatedCategories = bom.categories.map((category) => {
+    const updatedMaterials = category.materials.map((material) => {
+      if (material._id === selectedMaterial._id) {
+        const newQuantity = (material.quantity || 0) + additionalQuantity;
+        const newTotalAmount = material.cost * newQuantity;
+        
+        return {
+          ...material,
+          quantity: newQuantity,
+          totalAmount: newTotalAmount
+        };
+      }
+      return material;
+    });
+
+    // Recalculate category total
+    const categoryTotal = updatedMaterials.reduce(
+      (sum, material) => sum + (material.totalAmount || 0),
+      0
+    );
+
+    return {
+      ...category,
+      materials: updatedMaterials,
+      categoryTotal: parseFloat(categoryTotal.toFixed(2))
+    };
+  });
+
+  // Recalculate project costs
+  const { originalTotalProjectCost, markedUpTotalProjectCost } = 
+    calculateUpdatedCosts({ ...bom, categories: updatedCategories });
+
+  setBom({
+    ...bom,
+    categories: updatedCategories,
+    originalCosts: {
+      ...bom.originalCosts,
+      totalProjectCost: originalTotalProjectCost,
+    },
+    markedUpCosts: {
+      ...bom.markedUpCosts,
+      totalProjectCost: markedUpTotalProjectCost,
+    },
+  });
+
+  // Close modal and reset
+  setAddQuantityModalOpen(false);
+  setSelectedMaterial(null);
+  setAdditionalQuantity(0);
+  showAlert('Success', 'Quantity added successfully!', 'success');
+};
   // BOM
   const [generatorModalOpen, setGeneratorModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -294,23 +554,73 @@ const ProjectList = () => {
   const [isLoadingBOM, setIsLoadingBOM] = useState(false);
   const [selectedProjectForBOM, setSelectedProjectForBOM] = useState(null);
 
-  // Add Material States
-  const [addMaterialModalOpen, setAddMaterialModalOpen] = useState(false);
-  const [newMaterial, setNewMaterial] = useState({
-    description: '',
-    unit: '',
-    cost: '',
-    specifications: '',
-    supplier: '',
-    brand: '',
+  const handleReplaceClick = (material) => {
+  setMaterialToReplace(material);
+  setMaterialModalOpen(true); 
+};
+
+const handleMaterialAdd = (newMaterial) => {
+  if (!bom) return;
+
+  console.log('Adding new material:', newMaterial);
+
+  // Create a new material object with initial quantity of 1
+  const materialToAdd = {
+    ...newMaterial,
+    quantity: 1, // Default quantity when adding
+    totalAmount: newMaterial.cost * 1, // Calculate initial total
+    item: `Item-${Date.now()}`, // Generate a unique item identifier
+  };
+
+  // Add to the first category (or you can let user choose category)
+  const updatedCategories = bom.categories.map((category, index) => {
+    if (index === 0) { // Add to first category, or implement category selection
+      return {
+        ...category,
+        materials: [...category.materials, materialToAdd],
+      };
+    }
+    return category;
   });
 
-  console.log('BOM State:', bom);
+  // Recalculate category totals
+  const updatedCategoriesWithTotals = updatedCategories.map((category) => {
+    const categoryTotal = category.materials.reduce(
+      (sum, material) => sum + (material.totalAmount || 0),
+      0
+    );
+    return {
+      ...category,
+      categoryTotal: parseFloat(categoryTotal.toFixed(2)),
+    };
+  });
 
-  const handleReplaceClick = (material) => {
-    setMaterialToReplace(material);
-    setMaterialModalOpen(true);
-  };
+  // Recalculate project costs
+  const { originalTotalProjectCost, markedUpTotalProjectCost } = 
+    calculateUpdatedCosts({ ...bom, categories: updatedCategoriesWithTotals });
+
+  setBom({
+    ...bom,
+    categories: updatedCategoriesWithTotals,
+    originalCosts: {
+      ...bom.originalCosts,
+      totalProjectCost: originalTotalProjectCost,
+    },
+    markedUpCosts: {
+      ...bom.markedUpCosts,
+      totalProjectCost: markedUpTotalProjectCost,
+    },
+  });
+
+  // Close modal
+  setAddMaterialModalOpen(false);
+  showAlert('Success', 'Material added to BOM successfully!', 'success');
+};
+
+const handleAddClick = (material) => {
+  setMaterialToAdd(material);
+  setAddMaterialModalOpen(true);  
+};
 
   const handleMaterialSelect = (newMaterial) => {
     if (materialToReplace && bom) {
@@ -392,6 +702,8 @@ const ProjectList = () => {
       markedUpTotalProjectCost,
     };
   };
+
+   
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -517,29 +829,38 @@ const ProjectList = () => {
       (pageWidth - 40) * 0.2
     );
     yPosition += 30;
-    doc.setFontSize(15);
-    doc.text('Generated BOM', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 10;
-    doc.text(
-      `Project: ${selectedProjectForBOM?.name || 'Custom'}`,
-      10,
-      yPosition
-    );
-    yPosition += 10;
-    doc.text(`Total Area: ${bom.projectDetails.totalArea} sqm`, 10, yPosition);
-    yPosition += 10;
-    doc.text(
-      `Number of Floors: ${bom.projectDetails.numFloors}`,
-      10,
-      yPosition
-    );
-    yPosition += 10;
-    doc.text(
-      `Floor Height: ${bom.projectDetails.avgFloorHeight} meters`,
-      10,
-      yPosition
-    );
-    yPosition += 10;
+    // BOM Header with professional styling
+// BOM Header with centered blue bar
+const rectWidth = 150; // Smaller width
+const rectX = (pageWidth - rectWidth) / 2; // Center the rectangle
+
+doc.setFillColor(213, 164, 153); // Pi
+doc.setDrawColor(0, 0, 0); // Black border
+doc.setLineWidth(0.5);
+doc.rect(rectX, yPosition, rectWidth, 8, 'FD'); // FD = Fill and Draw (border)
+
+doc.setTextColor(0, 0, 0); // Black text
+doc.setFontSize(12);
+doc.setFont(undefined, 'normal'); // Not bold
+doc.text('BILL OF MATERIALS', pageWidth / 2, yPosition + 5.5, { align: 'center' });
+
+yPosition += 15;
+doc.setTextColor(0, 0, 0); // Reset to black text
+// Project details section
+doc.setFontSize(11);
+doc.setFont(undefined, 'bold');
+doc.text(`Project Title: ${selectedProjectForBOM?.name || 'Custom'}`, 10, yPosition);
+doc.text(`Area= ${bom.projectDetails.totalArea} sqm`, pageWidth - 60, yPosition);
+yPosition += 5;
+
+doc.text(`Project Engineer: Engr. Carmelo Soriano`, 10, yPosition);
+yPosition += 5;
+
+doc.text(`Project Owner: ${selectedProjectForBOM?.user}`, 10, yPosition);
+yPosition += 5;
+
+doc.text(`Project Location: ${bom.projectDetails.location.name}`, 10, yPosition);
+yPosition += 12;
 
     if (version === 'client') {
       // Formatting the Grand Total text
@@ -623,31 +944,87 @@ const ProjectList = () => {
       }).format(Math.ceil(bom.markedUpCosts.laborCost * 100) / 100)}`;
 
       doc.setFontSize(15);
-      doc.text('Design Engineer Cost Breakdown', 10, yPosition);
-      yPosition += 10;
-      doc.setFontSize(15);
-      doc.text(
-        `Original Project Cost (without markup): ${originalProjectCost}`,
-        10,
-        yPosition
+doc.setFont(undefined, 'bold'); // Make text bold
+doc.text('DESIGN ENGINEER COST BREAKDOWN', 10, yPosition);
+doc.setFont(undefined, 'normal'); // Reset to normal font
+yPosition += 5;
+
+// Create a structured table for cost breakdown
+const costBreakdownData = [
+  ['1. LABOR COST', originalLaborCost],
+  ['2. MATERIALS COST', `PHP ${new Intl.NumberFormat('en-PH', {
+    style: 'decimal',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(bom.originalCosts.totalProjectCost - bom.originalCosts.laborCost)}`],
+  ['SUBTOTAL', originalProjectCost],
+  ['', ''], // Empty row for spacing
+  [`MARKUP (${bom.projectDetails.location.markup}% - ${bom.projectDetails.location.name})`, ''],
+  ['Markup Amount', `PHP ${new Intl.NumberFormat('en-PH', {
+    style: 'decimal',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(bom.markedUpCosts.totalProjectCost - bom.originalCosts.totalProjectCost)}`],
+  ['', ''], // Empty row for spacing
+  ['GRAND TOTAL', markedUpProjectCost]
+];
+
+// AutoTable for cost breakdown
+doc.autoTable({
+  startY: yPosition,
+  head: [['DESCRIPTION', 'AMOUNT (PHP)']],
+  body: costBreakdownData,
+  theme: 'grid',
+  headStyles: { 
+    fillColor: [41, 128, 185],
+    textColor: 255,
+    fontStyle: 'bold'
+  },
+  bodyStyles: { 
+    textColor: [0, 0, 0],
+    fontSize: 12
+  },
+  columnStyles: {
+    0: { fontStyle: 'bold', cellWidth: 'auto' },
+    1: { halign: 'right', cellWidth: 'auto' }
+  },
+  styles: {
+    lineColor: [0, 0, 0],
+    lineWidth: 0.1
+  },
+  didDrawCell: function(data) {
+    // Add custom styling for specific rows
+    if (data.row.index === 2) { // SUBTOTAL row
+      doc.setDrawColor(0);
+      doc.setLineWidth(0.5);
+      doc.line(
+        data.cell.x,
+        data.cell.y + data.cell.height,
+        data.cell.x + data.cell.width,
+        data.cell.y + data.cell.height
       );
-      yPosition += 10;
-      doc.text(
-        `Original Labor Cost (without markup): ${originalLaborCost}`,
-        10,
-        yPosition
+    }
+    if (data.row.index === 4) { // MARKUP header row
+      doc.setFont(undefined, 'bold'); // Correct method for bold
+      doc.setTextColor(0, 0, 0);
+    }
+    if (data.row.index === 6) { // GRAND TOTAL row
+      doc.setFont(undefined, 'bold'); // Correct method for bold
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.setDrawColor(0);
+      doc.setLineWidth(1);
+      doc.line(
+        data.cell.x,
+        data.cell.y,
+        data.cell.x + data.cell.width,
+        data.cell.y
       );
-      yPosition += 10;
-      doc.text(
-        `Location: ${bom.projectDetails.location.name} (Markup: ${markup}%)`,
-        10,
-        yPosition
-      );
-      yPosition += 10;
-      doc.text(`Marked-Up Project Cost: ${markedUpProjectCost}`, 10, yPosition);
-      yPosition += 10;
-      doc.text(`Marked-Up Labor Cost: ${markedUpLaborCost}`, 10, yPosition);
-      yPosition += 20;
+    }
+  }
+});
+
+yPosition = doc.lastAutoTable.finalY + 10;
 
       // Detailed table with totals for each category
       bom.categories.forEach((category, categoryIndex) => {
@@ -731,14 +1108,9 @@ const ProjectList = () => {
 
   // Add Material Functions
   const handleAddMaterialClick = () => {
-    setMaterialModalOpen(true);
-  };
-
-  const handleMaterialAdd = () => {
-    setMaterialModalOpen(false);
-    setAddMaterialModalOpen(true);
-    showAlert('Success', 'Material added successfully!', 'success');
-  };
+  setAddMaterialModalOpen(true); // This should open the ADD material modal
+  setMaterialModalOpen(false);   // Close the replace modal if it's open
+};
 
   const handleCreateMaterial = async () => {
     try {
@@ -1579,14 +1951,19 @@ const ProjectList = () => {
   };
 
   const handleSaveBOM = (BomId) => {
-    if (!BomId) {
-      showAlert(
-        'Error',
-        'No project selected. Please select a project before saving.',
-        'error'
-      );
-      return;
-    }
+  if (!BomId) {
+    showAlert(
+      'Error',
+      'No project selected. Please select a project before saving.',
+      'error'
+    );
+    return;
+  }
+
+  // Add debugging to see what's being saved
+  console.log('Saving BOM with current state:', bom);
+  console.log('First material quantity:', bom?.categories[0]?.materials[0]?.quantity);
+
 
     const payload = {
       bom: {
@@ -3527,57 +3904,87 @@ const ProjectList = () => {
                 </Accordion>
 
                 {/* BOM Section */}
-                {selectedProject.bom &&
-                selectedProject.bom.categories.length > 0 ? (
-                  <>
-                    <Typography variant="h6" mt={2}>
-                      Bill of Materials (BOM)
-                    </Typography>
-                    <Typography>
-                    <strong>Original Labor Cost:</strong> ₱
-                    {Number(selectedProject.bom.originalCosts.laborCost || 0).toLocaleString(
-                    'en-PH',
-                     { 
-                      minimumFractionDigits: 2,
-                     maximumFractionDigits: 2 
-                     }
-                    )}
-                    </Typography>
-                    <Typography>
-                    <strong>Original Total Project Cost:</strong> ₱
-                    {selectedProject.bom.originalCosts.totalProjectCost?.toLocaleString(
-                      'en-PH',
-                        { maximumFractionDigits: 2 }
-                      )}
-                    </Typography>
-                    <Typography>
-                      <strong>Marked-Up Labor Cost:</strong> ₱
-                      {selectedProject.bom.markedUpCosts?.laborCost?.toLocaleString(
-                        'en-PH',
-                        { maximumFractionDigits: 2 }
-                      )}
-                    </Typography>
-                    <Typography>
-                      <strong>Marked-Up Total Project Cost:</strong> ₱
-                      {selectedProject.bom.markedUpCosts?.totalProjectCost?.toLocaleString(
-                        'en-PH',
-                        { maximumFractionDigits: 2 }
-                      )}
-                    </Typography>
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      onClick={() => handleGeneratePDF('designEngineer')}
-                      sx={{ mt: 2 }}
-                    >
-                      Download Your BOM
-                    </Button>
-                  </>
-                ) : (
-                  <Typography mt={2}>
-                    <strong>BOM data is not available for this project.</strong>
-                  </Typography>
-                )}
+{selectedProject.bom && selectedProject.bom.categories.length > 0 ? (
+  <>
+    <Typography variant="h6" mt={2} gutterBottom sx={{ fontWeight: 'bold' }}>
+      BILL OF MATERIALS (BOM)
+    </Typography>
+    
+    <TableContainer>
+      <Table size="small">
+        <TableBody>
+          {/* Base Costs */}
+          <TableRow>
+            <TableCell><strong>1. LABOR COST</strong></TableCell>
+            <TableCell align="right">
+              {selectedProject.bom.originalCosts.laborCost
+                ? `₱${selectedProject.bom.originalCosts.laborCost.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : 'N/A'}
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell><strong>2. MATERIALS COST</strong></TableCell>
+            <TableCell align="right">
+              {selectedProject.bom.originalCosts.totalProjectCost && selectedProject.bom.originalCosts.laborCost
+                ? `₱${(selectedProject.bom.originalCosts.totalProjectCost - selectedProject.bom.originalCosts.laborCost).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : 'N/A'}
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell><strong>SUBTOTAL</strong></TableCell>
+            <TableCell align="right">
+              {selectedProject.bom.originalCosts.totalProjectCost
+                ? `₱${selectedProject.bom.originalCosts.totalProjectCost.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : 'N/A'}
+            </TableCell>
+          </TableRow>
+
+          {/* Markup */}
+          <TableRow>
+            <TableCell colSpan={2} sx={{ borderTop: '1px solid #000', pt: 1 }}>
+              <strong>MARKUP ({selectedProject.bom.projectDetails.location.markup}% - {selectedProject.bom.projectDetails.location.name})</strong>
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell><strong>Markup Amount</strong></TableCell>
+            <TableCell align="right">
+              {selectedProject.bom.originalCosts.totalProjectCost && selectedProject.bom.markedUpCosts.totalProjectCost
+                ? `₱${(selectedProject.bom.markedUpCosts.totalProjectCost - selectedProject.bom.originalCosts.totalProjectCost).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : 'N/A'}
+            </TableCell>
+          </TableRow>
+
+          {/* Final Total */}
+          <TableRow>
+            <TableCell colSpan={2} sx={{ borderTop: '2px solid #000', pt: 1 }}>
+              <strong>GRAND TOTAL</strong>
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell colSpan={2} align="right" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+              {selectedProject.bom.markedUpCosts.totalProjectCost
+                ? `₱${selectedProject.bom.markedUpCosts.totalProjectCost.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : 'N/A'}
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </TableContainer>
+
+    <Button
+      variant="contained"
+      color="secondary"
+      onClick={() => handleGeneratePDF('designEngineer')}
+      sx={{ mt: 2 }}
+    >
+      Download Your BOM
+    </Button>
+  </>
+) : (
+  <Typography mt={2}>
+    <strong>BOM data is not available for this project.</strong>
+  </Typography>
+)}
               </DialogContent>
               <DialogActions>
                 <Button onClick={() => setShowDetailsModal(false)}>
@@ -3777,65 +4184,69 @@ const ProjectList = () => {
               </Table>
             </TableContainer>
             <Box mt={4}>
-              <Typography variant="h5">Cost Details</Typography>
-              <TableContainer>
-                <Table>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>
-                        <strong>Original Labor Cost</strong>
-                      </TableCell>
-                      <TableCell>
-                        {bom.originalCosts.laborCost
-                          ? new Intl.NumberFormat('en-PH', {
-                              style: 'currency',
-                              currency: 'PHP',
-                            }).format(bom.originalCosts.laborCost)
-                          : 'N/A'}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>
-                        <strong>Original Total Project Cost</strong>
-                      </TableCell>
-                      <TableCell>
-                        {bom.originalCosts.totalProjectCost
-                          ? new Intl.NumberFormat('en-PH', {
-                              style: 'currency',
-                              currency: 'PHP',
-                            }).format(bom.originalCosts.totalProjectCost)
-                          : 'N/A'}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>
-                        <strong>Marked-Up Labor Cost</strong>
-                      </TableCell>
-                      <TableCell>
-                        {bom.markedUpCosts.laborCost
-                          ? new Intl.NumberFormat('en-PH', {
-                              style: 'currency',
-                              currency: 'PHP',
-                            }).format(bom.markedUpCosts.laborCost)
-                          : 'N/A'}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>
-                        <strong>Marked-Up Total Project Cost</strong>
-                      </TableCell>
-                      <TableCell>
-                        {bom.markedUpCosts.totalProjectCost
-                          ? new Intl.NumberFormat('en-PH', {
-                              style: 'currency',
-                              currency: 'PHP',
-                            }).format(bom.markedUpCosts.totalProjectCost)
-                          : 'N/A'}
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TableContainer>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+  COST BREAKDOWN
+</Typography>
+<TableContainer>
+  <Table size="small">
+    <TableBody>
+      {/* Base Costs */}
+      <TableRow>
+        <TableCell><strong>1. LABOR COST</strong></TableCell>
+        <TableCell align="right">
+          {bom.originalCosts.laborCost
+            ? `₱${bom.originalCosts.laborCost.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A'}
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell><strong>2. MATERIALS COST</strong></TableCell>
+        <TableCell align="right">
+          {bom.originalCosts.totalProjectCost && bom.originalCosts.laborCost
+            ? `₱${(bom.originalCosts.totalProjectCost - bom.originalCosts.laborCost).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A'}
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell><strong>SUBTOTAL</strong></TableCell>
+        <TableCell align="right">
+          {bom.originalCosts.totalProjectCost
+            ? `₱${bom.originalCosts.totalProjectCost.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A'}
+        </TableCell>
+      </TableRow>
+
+      {/* Markup */}
+      <TableRow>
+        <TableCell colSpan={2} sx={{ borderTop: '1px solid #000', pt: 1 }}>
+          <strong>MARKUP ({bom.projectDetails.location.markup}% - {bom.projectDetails.location.name})</strong>
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell><strong>Markup Amount</strong></TableCell>
+        <TableCell align="right">
+          {bom.originalCosts.totalProjectCost && bom.markedUpCosts.totalProjectCost
+            ? `₱${(bom.markedUpCosts.totalProjectCost - bom.originalCosts.totalProjectCost).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A'}
+        </TableCell>
+      </TableRow>
+
+      {/* Final Total */}
+      <TableRow>
+        <TableCell colSpan={2} sx={{ borderTop: '2px solid #000', pt: 1 }}>
+          <strong>GRAND TOTAL</strong>
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell colSpan={2} align="right" sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+          {bom.markedUpCosts.totalProjectCost
+            ? `₱${bom.markedUpCosts.totalProjectCost.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : 'N/A'}
+        </TableCell>
+      </TableRow>
+    </TableBody>
+  </Table>
+</TableContainer>
             </Box>
 
             <Box mt={4}>
@@ -3847,6 +4258,15 @@ const ProjectList = () => {
               >
                 <Typography variant="h6">Materials</Typography>
               </Box>
+              <Button
+  variant="contained"
+  color="secondary"
+  size="small"
+  onClick={handleAddMaterialClick} // This should open the ADD modal, not replace modal
+  startIcon={<SwapHoriz />}
+>
+  Add New Material
+</Button>
               <TableContainer>
                 <Table>
                   <TableHead>
@@ -3896,10 +4316,10 @@ const ProjectList = () => {
                                 variant="contained"
                                 color="primary"
                                 size="small"
-                                onClick={handleAddMaterialClick}
+                                onClick ={() => handleAddQuantityClick(mat)}
                                 startIcon={<AddIcon />}
                               >
-                                Add Material
+                                Add Quantity
                               </Button>
                               <Button
                                 variant="contained"
@@ -3957,99 +4377,26 @@ const ProjectList = () => {
         isOpen={materialModalOpen}
         onClose={() => setMaterialModalOpen(false)}
         onMaterialSelect={handleMaterialSelect}
-        onMaterialAdd={handleMaterialAdd}
         materialToReplace={materialToReplace}
         user={user}
       />
 
-      {/* Add Material Modal */}
-      <Dialog
-        open={addMaterialModalOpen}
-        onClose={() => setAddMaterialModalOpen(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>
-          Add New Material
-          <IconButton
-            onClick={() => setAddMaterialModalOpen(false)}
-            style={{ position: 'absolute', right: 8, top: 8 }}
-          >
-            <Close />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers>
-          <TextField
-            fullWidth
-            margin="dense"
-            label="Description"
-            value={newMaterial.description}
-            onChange={(e) =>
-              setNewMaterial({ ...newMaterial, description: e.target.value })
-            }
-            required
-          />
-          <TextField
-            fullWidth
-            margin="dense"
-            label="Unit"
-            value={newMaterial.unit}
-            onChange={(e) =>
-              setNewMaterial({ ...newMaterial, unit: e.target.value })
-            }
-            placeholder="e.g., bags, pieces, meters"
-            required
-          />
-          <TextField
-            fullWidth
-            margin="dense"
-            label="Cost (₱)"
-            type="number"
-            value={newMaterial.cost}
-            onChange={(e) =>
-              setNewMaterial({ ...newMaterial, cost: e.target.value })
-            }
-            required
-          />
-          <TextField
-            fullWidth
-            margin="dense"
-            label="Specifications"
-            value={newMaterial.specifications}
-            onChange={(e) =>
-              setNewMaterial({ ...newMaterial, specifications: e.target.value })
-            }
-          />
-          <TextField
-            fullWidth
-            margin="dense"
-            label="Supplier"
-            value={newMaterial.supplier}
-            onChange={(e) =>
-              setNewMaterial({ ...newMaterial, supplier: e.target.value })
-            }
-          />
-          <TextField
-            fullWidth
-            margin="dense"
-            label="Brand"
-            value={newMaterial.brand}
-            onChange={(e) =>
-              setNewMaterial({ ...newMaterial, brand: e.target.value })
-            }
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAddMaterialModalOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleCreateMaterial}
-            variant="contained"
-            color="primary"
-          >
-            Add Material
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <AddMaterialModal
+  isOpen={addMaterialModalOpen}
+  onClose={() => setAddMaterialModalOpen(false)}
+  onMaterialAdd={handleMaterialAdd}  // This should point to the function inside the component
+  user={user}
+/>
+
+      <AddQuantityModal
+     isOpen={addQuantityModalOpen}
+     onClose={() => setAddQuantityModalOpen(false)}
+    selectedMaterial={selectedMaterial}
+     additionalQuantity={additionalQuantity}
+   onQuantityChange={setAdditionalQuantity}
+   onAddQuantity={handleAddQuantity}
+/>
+
     </>
   );
 };
