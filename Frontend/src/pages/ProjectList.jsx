@@ -3534,17 +3534,34 @@ const ProjectList = () => {
                       Bill of Materials (BOM)
                     </Typography>
                     <Typography>
-                      <strong>Total Project Cost:</strong> ₱
-                      {selectedProject.bom.markedUpCosts?.totalProjectCost?.toLocaleString(
-                        'en-PH',
-                        { minimumFractionDigits: 2 }
+                    <strong>Original Labor Cost:</strong> ₱
+                    {Number(selectedProject.bom.originalCosts.laborCost || 0).toLocaleString(
+                    'en-PH',
+                     { 
+                      minimumFractionDigits: 2,
+                     maximumFractionDigits: 2 
+                     }
+                    )}
+                    </Typography>
+                    <Typography>
+                    <strong>Original Total Project Cost:</strong> ₱
+                    {selectedProject.bom.originalCosts.totalProjectCost?.toLocaleString(
+                      'en-PH',
+                        { maximumFractionDigits: 2 }
                       )}
                     </Typography>
                     <Typography>
-                      <strong>Labor Cost:</strong> ₱
+                      <strong>Marked-Up Labor Cost:</strong> ₱
                       {selectedProject.bom.markedUpCosts?.laborCost?.toLocaleString(
                         'en-PH',
-                        { minimumFractionDigits: 2 }
+                        { maximumFractionDigits: 2 }
+                      )}
+                    </Typography>
+                    <Typography>
+                      <strong>Marked-Up Total Project Cost:</strong> ₱
+                      {selectedProject.bom.markedUpCosts?.totalProjectCost?.toLocaleString(
+                        'en-PH',
+                        { maximumFractionDigits: 2 }
                       )}
                     </Typography>
                     <Button
