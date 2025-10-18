@@ -101,7 +101,7 @@ const ProjectProgress = () => {
     // Add Title
     doc.setFontSize(18);
     doc.text(`Client BOM: ${name || 'N/A'}`, pageWidth / 2, yPosition, { align: 'center' });
-    doc.setFontSize(12);
+    doc.setFontSize(18);
     yPosition += 10;
 
     // Project details
@@ -115,73 +115,71 @@ const ProjectProgress = () => {
     yPosition += 10;
     doc.text(`Foundation Depth: ${bom.projectDetails.foundationDepth || 'N/A'} meters`, 10, yPosition);
     yPosition += 10;
-    doc.text(`Location: ${bom.projectDetails.location?.name || 'N/A'} (${bom.projectDetails.location?.markup || 0}% markup)`, 10, yPosition);
-    yPosition += 15;
-
-    // BOM Costs
-    doc.setFontSize(14);
-    doc.text('Cost Summary:', 10, yPosition);
-    yPosition += 10;
-    doc.setFontSize(12);
-    doc.text(`Original Labor Cost: PHP ${new Intl.NumberFormat('en-PH', { style: 'decimal', minimumFractionDigits: 2 }).format(
-      bom.originalCosts.laborCost || 0
-    )}`, 10, yPosition);
-    yPosition += 10;
-    doc.text(`Original Total Project Cost: PHP ${new Intl.NumberFormat('en-PH', { style: 'decimal', minimumFractionDigits: 2 }).format(
-      bom.originalCosts.totalProjectCost || 0
-    )}`, 10, yPosition);
-    yPosition += 10;
-    doc.text(`Marked Up Labor Cost: PHP ${new Intl.NumberFormat('en-PH', { style: 'decimal', minimumFractionDigits: 2 }).format(
-      bom.markedUpCosts.laborCost || 0
-    )}`, 10, yPosition);
-    yPosition += 10;
     
     // BOM Grand Total
-    const grandTotal = `PHP ${new Intl.NumberFormat('en-PH', { style: 'decimal', minimumFractionDigits: 2 }).format(
-      bom.markedUpCosts.totalProjectCost || 0
-    )}`;
-    doc.setFontSize(16);
-    doc.text(`Grand Total: ${grandTotal}`, 10, yPosition);
-    yPosition += 20;
+    const formattedGrandTotal = `PHP ${new Intl.NumberFormat('en-PH', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+      }).format(bom.markedUpCosts.totalProjectCost || 0)}`;
+      //edited
+    doc.setFontSize(18);
+      doc.text(`Grand Total: ${formattedGrandTotal}`, 10, yPosition);
+      yPosition += 15;
 
-    // BOM Categories
-    doc.setFontSize(14);
-    doc.text('BOM Categories:', 10, yPosition);
-    yPosition += 10;
+    bom.categories.forEach((category, categoryIndex) => {
+        doc.setFontSize(12);
+        doc.text(category.category.toUpperCase(), 10, yPosition);
+        yPosition += 5;
 
-    bom.categories.forEach((category, index) => {
-      // Check if we need a new page
-      if (yPosition > 250) {
-        doc.addPage();
-        yPosition = 20;
-      }
+        doc.autoTable({
+          head: [
+            [
+              'Item',
+              'Description',
+              'Quantity',
+              'Unit',
+              'Unit Cost (PHP)',
+              'Total Amount (PHP)',
+            ],
+          ],
+          body: category.materials.map((material, index) => [
+            `${categoryIndex + 1}.${index + 1}`,
+            material.description || 'N/A',
+            material.quantity ? material.quantity.toFixed(2) : 'N/A',
+            material.unit || 'N/A',
+            `PHP ${new Intl.NumberFormat('en-PH', {
+              style: 'decimal',
+              minimumFractionDigits: 2,
+            }).format(material.cost)}`,
+            `PHP ${new Intl.NumberFormat('en-PH', {
+              style: 'decimal',
+              minimumFractionDigits: 2,
+            }).format(material.totalAmount)}`,
+          ]),
+          startY: yPosition,
+          headStyles: { fillColor: [41, 128, 185] },
+          bodyStyles: { textColor: [44, 62, 80] },
+        });
 
-      doc.setFontSize(12);
-      doc.setTextColor(41, 128, 185);
-      doc.text(`${index + 1}. ${category.category.toUpperCase()} - PHP ${new Intl.NumberFormat('en-PH', { style: 'decimal', minimumFractionDigits: 2 }).format(
-        category.categoryTotal || 0
-      )}`, 10, yPosition);
-      yPosition += 8;
+        yPosition = doc.lastAutoTable.finalY + 5;
 
-      // Add materials table for this category
-      doc.autoTable({
-        head: [['Item', 'Description', 'Quantity', 'Unit', 'Cost', 'Total Amount']],
-        body: category.materials.map(material => [
-          material.item,
-          material.description,
-          material.quantity,
-          material.unit,
-          `PHP ${new Intl.NumberFormat('en-PH', { style: 'decimal', minimumFractionDigits: 2 }).format(material.cost)}`,
-          `PHP ${new Intl.NumberFormat('en-PH', { style: 'decimal', minimumFractionDigits: 2 }).format(material.totalAmount)}`,
-        ]),
-        startY: yPosition,
-        headStyles: { fillColor: [41, 128, 185] },
-        bodyStyles: { textColor: [44, 62, 80] },
-        theme: 'grid',
+        // Add total for each category
+        const categoryTotal = `PHP ${new Intl.NumberFormat('en-PH', {
+          style: 'decimal',
+          minimumFractionDigits: 2,
+        }).format(
+          category.materials.reduce(
+            (sum, material) => sum + material.totalAmount,
+            0
+          )
+        )}`;
+        doc.text(
+          `Total for ${category.category.toUpperCase()}: ${categoryTotal}`,
+          10,
+          yPosition
+        );
+        yPosition += 15;
       });
-
-      yPosition = doc.lastAutoTable.finalY + 15;
-    });
 
     // Save the PDF
     doc.save(`Client_BOM_${name}.pdf`);
@@ -242,7 +240,7 @@ const ProjectProgress = () => {
         {/* Project Details */}
         <Box mt={3} p={2} sx={{ border: '1px solid #e0e0e0', borderRadius: '8px' }}>
           <Typography variant="h6" gutterBottom>
-            Project Details
+            Project Details and Timeline
           </Typography>
           <Box display="flex" flexWrap="wrap" gap={2}>
             <Typography variant="body2">
@@ -263,20 +261,11 @@ const ProjectProgress = () => {
             <Typography variant="body2">
               <strong>Design Engineer:</strong> {project.contractor}
             </Typography>
-          </Box>
-        </Box>
-
-        {/* Timeline */}
-        {project.timeline && (
-          <Box mt={2} p={2} sx={{ border: '1px solid #e0e0e0', borderRadius: '8px' }}>
-            <Typography variant="h6" gutterBottom>
-              Project Timeline
-            </Typography>
             <Typography variant="body2">
               <strong>Duration:</strong> {project.timeline.duration} {project.timeline.unit}
             </Typography>
           </Box>
-        )}
+        </Box>
 
         {/* BOM Section */}
         {project.bom && (
@@ -284,9 +273,6 @@ const ProjectProgress = () => {
             <Box display="flex" alignItems="center" gap={2}>
               <Button variant="contained" color="secondary" onClick={handleDownloadBOM}>
                 Download your BOM
-              </Button>
-              <Button variant="outlined" onClick={toggleBomDetails}>
-                {bomDetailsOpen ? 'Hide BOM Details' : 'Show BOM Details'}
               </Button>
             </Box>
 

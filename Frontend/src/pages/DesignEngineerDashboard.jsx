@@ -103,8 +103,8 @@ const DesignEngineerDashboard = () => {
               <div className={styles.cardText}>TEMPLATES</div>
             </Link>
             <Link to="/Generator" className={styles.dashboardCard}>
-              <img src={Picture} alt="Generate BOM" className={styles.dashboardImage} />
-              <div className={styles.cardText}>GENERATE A BOM</div>
+              <img src={Picture} alt="CUSTOM GENERATE BOM" className={styles.dashboardImage} />
+              <div className={styles.cardText}>CUSTOM GENERATE BOM</div>
             </Link>
           </>
         ) : (

@@ -3567,18 +3567,10 @@ const ProjectList = () => {
                     <Button
                       variant="contained"
                       color="secondary"
-                      onClick={() => handleGeneratePDF('client')}
-                      sx={{ mt: 2, mr: 2 }}
-                    >
-                      Download BOM for Client
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="secondary"
                       onClick={() => handleGeneratePDF('designEngineer')}
                       sx={{ mt: 2 }}
                     >
-                      Download BOM for Design Engineer
+                      Download Your BOM
                     </Button>
                   </>
                 ) : (
