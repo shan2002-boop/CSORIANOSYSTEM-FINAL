@@ -104,7 +104,7 @@ const DesignEngineerDashboard = () => {
             </Link>
             <Link to="/Generator" className={styles.dashboardCard}>
               <img src={Picture} alt="CUSTOM GENERATE BOM" className={styles.dashboardImage} />
-              <div className={styles.cardText}>CUSTOM GENERATE BOM</div>
+              <div className={styles.cardText}>FREE QOUTE</div>
             </Link>
           </>
         ) : (

@@ -74,7 +74,7 @@ With years of experience in the local construction industry, we’ve earned a re
                     textAlign: "start",
                   }}
                 >
-                  C. Soriano Construction & Supply
+                 - Engr. Carmelo Soriano
                 </Typography>
               </Box>
             </Box>

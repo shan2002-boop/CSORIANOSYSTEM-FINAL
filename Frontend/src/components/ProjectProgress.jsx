@@ -93,15 +93,20 @@ const ProjectProgress = () => {
     let yPosition = 20; // Starting y position for details
 
     // Add the logo at the top
-    const imgWidth = pageWidth - 40; // Adjust width to make it centered and smaller than page width
-    const imgHeight = imgWidth * 0.4; // Maintain aspect ratio
-    doc.addImage(sorianoLogo, 'JPEG', 20, 10, imgWidth, imgHeight);
-    yPosition += imgHeight + 10; // Adjust y position below the logo
+    doc.addImage(
+          sorianoLogo,
+          'JPEG',
+          20,
+          10,
+          pageWidth - 40,
+          (pageWidth - 40) * 0.2
+        );
+        yPosition += 30;
 
     // Add Title
     doc.setFontSize(18);
     doc.text(`Client BOM: ${name || 'N/A'}`, pageWidth / 2, yPosition, { align: 'center' });
-    doc.setFontSize(18);
+    doc.setFontSize(14);
     yPosition += 10;
 
     // Project details
@@ -117,14 +122,20 @@ const ProjectProgress = () => {
     yPosition += 10;
     
     // BOM Grand Total
-    const formattedGrandTotal = `PHP ${new Intl.NumberFormat('en-PH', {
-        style: 'decimal',
-        minimumFractionDigits: 2,
-      }).format(bom.markedUpCosts.totalProjectCost || 0)}`;
-      //edited
-    doc.setFontSize(18);
-      doc.text(`Grand Total: ${formattedGrandTotal}`, 10, yPosition);
-      yPosition += 15;
+    // BOM Grand Total
+const formattedGrandTotal = `PHP ${new Intl.NumberFormat('en-PH', {
+    style: 'decimal',
+    minimumFractionDigits: 2,
+}).format(bom.markedUpCosts.totalProjectCost || 0)}`;
+
+// Set font to bold for Grand Total only
+doc.setFont(undefined, 'bold');
+doc.setFontSize(18);
+doc.text(`Grand Total: ${formattedGrandTotal}`, 10, yPosition);
+
+// Reset font to normal for subsequent text
+doc.setFont(undefined, 'normal');
+yPosition += 15;
 
     bom.categories.forEach((category, categoryIndex) => {
         doc.setFontSize(12);
@@ -180,6 +191,33 @@ const ProjectProgress = () => {
         );
         yPosition += 15;
       });
+
+      // Footer for client's BOM copy
+const addClientFooter = (doc) => {
+  const pageHeight = doc.internal.pageSize.height;
+  const pageWidth = doc.internal.pageSize.width;
+  
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  
+  // Footer line
+  doc.setDrawColor(200, 200, 200);
+  doc.line(20, pageHeight - 25, pageWidth - 20, pageHeight - 25);
+  
+  // Footer text for registered clients
+  const footerText = 'CLIENT COPY - This BOM is accessible anytime through your account. For revisions or questions, contact your project engineer.';
+  
+  doc.text(footerText, pageWidth / 2, pageHeight - 18, { align: 'center', maxWidth: pageWidth - 40 });
+  
+  // Contact info
+  doc.text('C. SORIANO CONSTRUCTION & SUPPLY • Official BOM Document', pageWidth / 2, pageHeight - 10, { align: 'center' });
+  
+  // Reset text color
+  doc.setTextColor(0, 0, 0);
+};
+
+// Call this function at the end of your PDF generation, before saving:
+addClientFooter(doc);
 
     // Save the PDF
     doc.save(`Client_BOM_${name}.pdf`);
@@ -247,13 +285,13 @@ const ProjectProgress = () => {
               <strong>Total Area:</strong> {project.totalArea} sqm
             </Typography>
             <Typography variant="body2">
-              <strong>Average Floor Height:</strong> {project.avgFloorHeight} meters
-            </Typography>
-            <Typography variant="body2">
               <strong>Room Count:</strong> {project.roomCount}
             </Typography>
             <Typography variant="body2">
               <strong>Foundation Depth:</strong> {project.foundationDepth} meters
+            </Typography>
+            <Typography variant="body2">
+              <strong>Average Floor Height:</strong> {project.avgFloorHeight} meters
             </Typography>
             <Typography variant="body2">
               <strong>Location:</strong> {project.location}

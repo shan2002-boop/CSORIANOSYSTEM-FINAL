@@ -708,11 +708,11 @@ const handleAddClick = (material) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     const updatedFormData = { ...formData };
-    if (name === 'numFloors' && value > 5) {
-      updatedFormData[name] = 5;
+    if (name === 'numFloors' && value > 2) {
+      updatedFormData[name] = 2;
       setErrors({
         ...errors,
-        numFloors: 'Maximum allowed floors is 5. Resetting to 5.',
+        numFloors: 'Invalid input. Projects are restricted to a maximum of 2 floors.',
       });
       showAlert(
         'Validation Error',
@@ -936,7 +936,7 @@ yPosition += 12;
       });
   
     } else {
-      // Contractor-specific details
+      // Design-specific details
       const originalProjectCost = `PHP ${new Intl.NumberFormat('en-PH', {
         style: 'decimal',
         minimumFractionDigits: 2,
