@@ -626,62 +626,76 @@ const handleAddClick = (material) => {
 };
 
   const handleMaterialSelect = (newMaterial) => {
-    if (materialToReplace && bom) {
-      // Update the materials with the selected replacement material and recalculate total amounts
-      const updatedCategories = bom.categories.map((category) => {
-        const updatedMaterials = category.materials.map((material) => {
-          if (material._id === materialToReplace._id) {
-            return {
-              ...material,
-              description: newMaterial.description,
-              cost: parseFloat(newMaterial.cost),
-              totalAmount: parseFloat(
-                (
-                  parseFloat(material.quantity) * parseFloat(newMaterial.cost)
-                ).toFixed(2)
-              ),
-            };
-          }
-          return material;
-        });
+  if (materialToReplace && bom) {
+    console.log('Replacing material:', materialToReplace, 'with:', newMaterial);
 
-        const categoryTotal = updatedMaterials.reduce(
-          (sum, material) => sum + (parseFloat(material.totalAmount) || 0),
-          0
-        );
-
-        return {
-          ...category,
-          materials: updatedMaterials,
-          categoryTotal: parseFloat(categoryTotal.toFixed(2)),
-        };
+    // Update the materials with the selected replacement material
+    const updatedCategories = bom.categories.map((category) => {
+      const updatedMaterials = category.materials.map((material) => {
+        if (material._id === materialToReplace._id) {
+          // Keep the same quantity but update cost and description
+          const newTotalAmount = material.quantity * newMaterial.cost;
+          
+          return {
+            ...material,
+            description: newMaterial.description,
+            cost: parseFloat(newMaterial.cost),
+            totalAmount: parseFloat(newTotalAmount.toFixed(2)),
+            unit: newMaterial.unit || material.unit, // Keep existing unit if new one not provided
+            specifications: newMaterial.specifications || material.specifications
+          };
+        }
+        return material;
       });
 
-      // Recalculate the project cost and marked-up cost
-      const { originalTotalProjectCost, markedUpTotalProjectCost } =
-        calculateUpdatedCosts({
-          ...bom,
-          categories: updatedCategories,
-        });
+      // Recalculate category total
+      const categoryTotal = updatedMaterials.reduce(
+        (sum, material) => sum + (material.totalAmount || 0),
+        0
+      );
 
-      setBom({
+      return {
+        ...category,
+        materials: updatedMaterials,
+        categoryTotal: parseFloat(categoryTotal.toFixed(2)),
+      };
+    });
+
+    // ✅ RECALCULATE PROJECT COSTS WITH UPDATED LABOR COST
+    const { originalTotalProjectCost, markedUpTotalProjectCost, updatedLaborCost } =
+      calculateUpdatedCosts({
         ...bom,
         categories: updatedCategories,
-        originalCosts: {
-          ...bom.originalCosts,
-          totalProjectCost: originalTotalProjectCost,
-        },
-        markedUpCosts: {
-          ...bom.markedUpCosts,
-          totalProjectCost: markedUpTotalProjectCost,
-        },
       });
 
-      // Close the material replacement modal and show success alert
-      setMaterialModalOpen(false);
-      showAlert('Success', 'Material granted successfully.', 'success');
-    }
-  };
+    console.log('Updated costs after replacement:', {
+      originalTotalProjectCost,
+      markedUpTotalProjectCost, 
+      updatedLaborCost
+    });
+
+    // ✅ UPDATE BOM STATE WITH NEW COSTS
+    setBom({
+      ...bom,
+      categories: updatedCategories,
+      originalCosts: {
+        ...bom.originalCosts,
+        laborCost: updatedLaborCost, // ✅ Update labor cost
+        totalProjectCost: originalTotalProjectCost,
+      },
+      markedUpCosts: {
+        ...bom.markedUpCosts,
+        laborCost: updatedLaborCost, // ✅ Update labor cost
+        totalProjectCost: markedUpTotalProjectCost,
+      },
+    });
+
+    // Close the material replacement modal and show success alert
+    setMaterialModalOpen(false);
+    setMaterialToReplace(null); // ✅ Important: Reset the material to replace
+    showAlert('Success', 'Material replaced successfully!', 'success');
+  }
+};
 
   const calculateUpdatedCosts = (bom) => {
   const totalMaterialsCost = bom.categories.reduce((sum, category) => {
