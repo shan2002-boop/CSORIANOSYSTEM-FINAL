@@ -37,8 +37,6 @@ const HouseSliders = () => {
     fetchProjects();
   }, [user]);
 
-  console.log("Projects", projects);
-
   // Handle the search by finished date functionality
   const handleSearch = () => {
     if (!searchDate) {
@@ -75,10 +73,13 @@ const HouseSliders = () => {
   const indexOfFirstProject = indexOfLastProject - projectsPerPage;
   const currentProjects = filteredProjects.slice(indexOfFirstProject, indexOfLastProject);
 
-  // Format currency to 2 decimal places
+  // Format currency with commas and 2 decimal places
   const formatCurrency = (amount) => {
     if (!amount) return "0.00";
-    return parseFloat(amount).toFixed(2);
+    return parseFloat(amount).toLocaleString('en-PH', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   };
 
   return (
