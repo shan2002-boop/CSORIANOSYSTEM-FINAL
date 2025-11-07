@@ -27,8 +27,10 @@ app.use((req, res, next) => {
 
 
 app.use(cors({
-  origin: 'https://csorianosystem-final.vercel.app', 
-  // origin: 'https://csorianosystem-final.vercel.app',
+  origin: [
+    'https://csorianosystem-final.vercel.app',
+    'https://csorianoconstruction.vercel.app' 
+  ], 
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'], 
   allowedHeaders: ['Content-Type', 'Authorization'], 
   credentials: true, 
