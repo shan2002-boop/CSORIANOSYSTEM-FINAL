@@ -780,7 +780,7 @@ const Generator = () => {
         10,
         yPosition
       );
-      yPosition += 15;
+      yPosition += 14;
     });
 
     // Design Engineer Notes - INSIDE the else block
