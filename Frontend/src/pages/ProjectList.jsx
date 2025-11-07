@@ -516,20 +516,18 @@ const handleAddQuantity = () => {
   });
 
   // Recalculate project costs
-  const { originalTotalProjectCost, markedUpTotalProjectCost, originalLaborCost } = 
-  calculateUpdatedCosts({ ...bom, categories: updatedCategories });
+  const { originalTotalProjectCost, markedUpTotalProjectCost } = 
+    calculateUpdatedCosts({ ...bom, categories: updatedCategories });
 
   setBom({
     ...bom,
     categories: updatedCategories,
     originalCosts: {
       ...bom.originalCosts,
-      laborCost: originalLaborCost, // ✅ Update labor cost too
       totalProjectCost: originalTotalProjectCost,
     },
     markedUpCosts: {
       ...bom.markedUpCosts,
-      laborCost: originalLaborCost * (1 + markupPercentage), // ✅ Update marked up labo
       totalProjectCost: markedUpTotalProjectCost,
     },
   });
@@ -691,7 +689,7 @@ const handleAddClick = (material) => {
       return sum + categoryTotal;
     }, 0);
 
-    const originalLaborCost = totalMaterialsCost * 0.35;
+    const originalLaborCost = parseFloat(bom.originalCosts.laborCost) || 0;
     const originalTotalProjectCost = totalMaterialsCost + originalLaborCost;
 
     const markupPercentage =
