@@ -515,19 +515,21 @@ const handleAddQuantity = () => {
     };
   });
 
-  // Recalculate project costs
-  const { originalTotalProjectCost, markedUpTotalProjectCost } = 
-    calculateUpdatedCosts({ ...bom, categories: updatedCategories });
+  // Recalculate project costs with labor cost update
+  const { originalTotalProjectCost, markedUpTotalProjectCost, updatedLaborCost } = 
+    calculateUpdatedCosts({ ...bom, categories: updatedCategories }); // ← Make sure it's 'updatedCategories'
 
   setBom({
     ...bom,
-    categories: updatedCategories,
+    categories: updatedCategories, // ← Make sure it's 'updatedCategories'
     originalCosts: {
       ...bom.originalCosts,
+      laborCost: updatedLaborCost, // ✅ Update labor cost
       totalProjectCost: originalTotalProjectCost,
     },
     markedUpCosts: {
       ...bom.markedUpCosts,
+      laborCost: updatedLaborCost, // ✅ Update labor cost
       totalProjectCost: markedUpTotalProjectCost,
     },
   });
@@ -567,14 +569,14 @@ const handleMaterialAdd = (newMaterial) => {
   // Create a new material object with initial quantity of 1
   const materialToAdd = {
     ...newMaterial,
-    quantity: 1, // Default quantity when adding
-    totalAmount: newMaterial.cost * 1, // Calculate initial total
-    item: `Item-${Date.now()}`, // Generate a unique item identifier
+    quantity: 1,
+    totalAmount: newMaterial.cost * 1,
+    item: `Item-${Date.now()}`,
   };
 
-  // Add to the first category (or you can let user choose category)
+  // Add to the first category
   const updatedCategories = bom.categories.map((category, index) => {
-    if (index === 0) { // Add to first category, or implement category selection
+    if (index === 0) {
       return {
         ...category,
         materials: [...category.materials, materialToAdd],
@@ -595,8 +597,8 @@ const handleMaterialAdd = (newMaterial) => {
     };
   });
 
-  // Recalculate project costs
-  const { originalTotalProjectCost, markedUpTotalProjectCost } = 
+  // ✅ MAKE SURE THIS LINE IS CALLING calculateUpdatedCosts:
+  const { originalTotalProjectCost, markedUpTotalProjectCost, updatedLaborCost } = 
     calculateUpdatedCosts({ ...bom, categories: updatedCategoriesWithTotals });
 
   setBom({
@@ -604,15 +606,16 @@ const handleMaterialAdd = (newMaterial) => {
     categories: updatedCategoriesWithTotals,
     originalCosts: {
       ...bom.originalCosts,
+      laborCost: updatedLaborCost, // ✅ Update labor cost
       totalProjectCost: originalTotalProjectCost,
     },
     markedUpCosts: {
       ...bom.markedUpCosts,
+      laborCost: updatedLaborCost, // ✅ Update labor cost
       totalProjectCost: markedUpTotalProjectCost,
     },
   });
 
-  // Close modal
   setAddMaterialModalOpen(false);
   showAlert('Success', 'Material added to BOM successfully!', 'success');
 };
@@ -681,28 +684,29 @@ const handleAddClick = (material) => {
   };
 
   const calculateUpdatedCosts = (bom) => {
-    const totalMaterialsCost = bom.categories.reduce((sum, category) => {
-      const categoryTotal = category.materials.reduce((subSum, material) => {
-        const materialTotal = parseFloat(material.totalAmount) || 0;
-        return subSum + materialTotal;
-      }, 0);
-      return sum + categoryTotal;
+  const totalMaterialsCost = bom.categories.reduce((sum, category) => {
+    const categoryTotal = category.materials.reduce((subSum, material) => {
+      const materialTotal = parseFloat(material.totalAmount) || 0;
+      return subSum + materialTotal;
     }, 0);
+    return sum + categoryTotal;
+  }, 0);
 
-    const originalLaborCost = parseFloat(bom.originalCosts.laborCost) || 0;
-    const originalTotalProjectCost = totalMaterialsCost + originalLaborCost;
+  // Calculate labor cost as 35% of materials cost
+  const laborCostPercentage = 0.35; // 35% - CHANGED FROM 0.3 to 0.35
+  const updatedLaborCost = totalMaterialsCost * laborCostPercentage;
 
-    const markupPercentage =
-      parseFloat(bom.projectDetails.location.markup) / 100 || 0;
-    const markedUpTotalProjectCost =
-      originalTotalProjectCost + originalTotalProjectCost * markupPercentage;
+  const originalTotalProjectCost = totalMaterialsCost + updatedLaborCost;
 
-    return {
-      originalTotalProjectCost,
-      markedUpTotalProjectCost,
-    };
+  const markupPercentage = parseFloat(bom.projectDetails.location.markup) / 100 || 0;
+  const markedUpTotalProjectCost = originalTotalProjectCost + (originalTotalProjectCost * markupPercentage);
+
+  return {
+    originalTotalProjectCost,
+    markedUpTotalProjectCost,
+    updatedLaborCost // Return the updated labor cost
   };
-
+};
    
 
   const handleChange = (e) => {

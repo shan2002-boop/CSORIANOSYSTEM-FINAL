@@ -68,54 +68,57 @@ const ProjectDetails = () => {
         </div>
 
         {/* Bill of Materials Section */}
-        {project.bom && (
-          <div className={styles.bomDetails}>
-            <h2>Bill of Materials</h2>
-            <div className={styles.bomSummary}>
-              <p><strong>Total Area:</strong> {project.totalArea || 0} sqm</p>
-              <p><strong>Number of Floors:</strong> {project.numFloors || 0}</p>
-              <p><strong>Room Count:</strong> {project.roomCount || 0}</p>
-              <p><strong>Foundation Depth:</strong> {project.foundationDepth || 0} m</p>
-              <p><strong>Labor Cost:</strong> ₱{(project.bom.markedUpCosts?.laborCost || 0).toLocaleString()}</p>
-              <p><strong>Material Cost:</strong> ₱{(project.bom.markedUpCosts?.materialTotalCost || 0).toLocaleString()}</p>
-              <p><strong>Total Project Cost:</strong> ₱{(project.bom.markedUpCosts?.totalProjectCost || 0).toLocaleString()}</p>
-            </div>
-            
-            <h3>Materials Breakdown</h3>
-            <table className={styles.bomTable}>
-              <thead>
-                <tr>
-                  <th>Category</th>
-                  <th>Description</th>
-                  <th>Quantity</th>
-                  <th>Unit</th>
-                  <th>Unit Cost (₱)</th>
-                  <th>Total Amount (₱)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {project.bom.categories.map((category, categoryIndex) => (
-                  <React.Fragment key={categoryIndex}>
-                    {category.materials.map((material, materialIndex) => (
-                      <tr key={materialIndex}>
-                        {materialIndex === 0 && (
-                          <td rowSpan={category.materials.length}>
-                            {category.category}
-                          </td>
-                        )}
-                        <td>{material.description || "N/A"}</td>
-                        <td>{material.quantity || 0}</td>
-                        <td>{material.unit || "N/A"}</td>
-                        <td>₱{(material.cost || 0).toLocaleString()}</td>
-                        <td>₱{(material.totalAmount || 0).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+{project.bom && (
+  <div className={styles.bomDetails}>
+    <h2>Bill of Materials</h2>
+    <div className={styles.bomSummary}>
+      <p><strong>Total Area:</strong> {project.totalArea || 0} sqm</p>
+      <p><strong>Number of Floors:</strong> {project.numFloors || project.floors?.length || 0}</p>
+      <p><strong>Room Count:</strong> {project.roomCount || 0}</p>
+      <p><strong>Foundation Depth:</strong> {project.foundationDepth || 0} m</p>
+      <p><strong>Labor Cost:</strong> ₱{(project.bom.originalCosts?.laborCost || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+      <p><strong>Material Cost:</strong> ₱{(
+        (project.bom.originalCosts?.totalProjectCost || 0) - 
+        (project.bom.originalCosts?.laborCost || 0)
+      ).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+      <p><strong>Total Project Cost:</strong> ₱{(project.bom.markedUpCosts?.totalProjectCost || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+    </div>
+    
+    <h3>Materials Breakdown</h3>
+<table className={styles.bomTable}>
+  <thead>
+    <tr>
+      <th>Category</th>
+      <th>Description</th>
+      <th>Quantity</th>
+      <th>Unit</th>
+      <th>Unit Cost (₱)</th>
+      <th>Total Amount (₱)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {project.bom.categories.map((category, categoryIndex) => (
+      <React.Fragment key={categoryIndex}>
+        {category.materials.map((material, materialIndex) => (
+          <tr key={materialIndex}>
+            {materialIndex === 0 && (
+              <td rowSpan={category.materials.length}>
+                {category.category}
+              </td>
+            )}
+            <td>{material.description || "N/A"}</td>
+            <td>{parseFloat(material.quantity || 0).toFixed(2)}</td>
+            <td>{material.unit || "N/A"}</td>
+            <td>₱{(material.cost || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td>₱{(material.totalAmount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          </tr>
+        ))}
+      </React.Fragment>
+    ))}
+  </tbody>
+</table>
+  </div>
+)}
 
         {/* Floors and Tasks Section */}
         {project.floors && project.floors.length > 0 && (

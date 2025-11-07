@@ -4,8 +4,8 @@ import styles from "../css/HouseSliders.module.css";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { TextField, Button } from "@mui/material"; // Material UI TextField and Button
-import Pagination from "@mui/material/Pagination"; // Import Pagination from Material-UI
+import { TextField, Button } from "@mui/material";
+import Pagination from "@mui/material/Pagination";
 
 const HouseSliders = () => {
   const [projects, setProjects] = useState([]);
@@ -14,10 +14,10 @@ const HouseSliders = () => {
 
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
-  const [projectsPerPage] = useState(12); // Display 12 projects per page
+  const [projectsPerPage] = useState(12);
 
   // Search Date State
-  const [searchDate, setSearchDate] = useState(""); // Search Date for finished date only
+  const [searchDate, setSearchDate] = useState("");
 
   // Fetch all projects from the backend
   useEffect(() => {
@@ -29,7 +29,7 @@ const HouseSliders = () => {
           },
         });
         setProjects(response.data);
-        setFilteredProjects(response.data); // Initially show all projects
+        setFilteredProjects(response.data);
       } catch (error) {
         console.error("Error fetching projects:", error);
       }
@@ -42,29 +42,27 @@ const HouseSliders = () => {
   // Handle the search by finished date functionality
   const handleSearch = () => {
     if (!searchDate) {
-      setFilteredProjects(projects); // If no date is selected, show all projects
+      setFilteredProjects(projects);
       return;
     }
 
     const filtered = projects.filter((project) => {
-      if (!project.updatedAt) return false; // Skip projects without a finishedAt date
+      if (!project.updatedAt) return false;
 
-      const finishedAtDate = new Date(project.updatedAt).toISOString().split('T')[0]; // Get only the date part in ISO format
-      const searchFormattedDate = new Date(searchDate).toISOString().split('T')[0]; // Get only the date part from search date
+      const finishedAtDate = new Date(project.updatedAt).toISOString().split('T')[0];
+      const searchFormattedDate = new Date(searchDate).toISOString().split('T')[0];
 
-      // Compare both the dates
       return finishedAtDate === searchFormattedDate;
     });
 
-    // Sort filtered projects by finished date (ascending order)
     filtered.sort((a, b) => {
       const dateA = new Date(a.updatedAt);
       const dateB = new Date(b.updatedAt);
-      return dateA - dateB; // Ascending order
+      return dateA - dateB;
     });
 
     setFilteredProjects(filtered);
-    setCurrentPage(1); // Reset to the first page when search is performed
+    setCurrentPage(1);
   };
 
   // Handle page change
@@ -76,6 +74,12 @@ const HouseSliders = () => {
   const indexOfLastProject = currentPage * projectsPerPage;
   const indexOfFirstProject = indexOfLastProject - projectsPerPage;
   const currentProjects = filteredProjects.slice(indexOfFirstProject, indexOfLastProject);
+
+  // Format currency to 2 decimal places
+  const formatCurrency = (amount) => {
+    if (!amount) return "0.00";
+    return parseFloat(amount).toFixed(2);
+  };
 
   return (
     <>
@@ -131,17 +135,19 @@ const HouseSliders = () => {
                     <strong>Total Area:</strong> {project.totalArea} sqm
                   </p>
                   <p>
-                    <strong>Number of Floors:</strong> {project.numFloors}
+                    <strong>Number of Floors:</strong> {project.numFloors || project.floors?.length || "N/A"}
                   </p>
                   <p>
                     <strong>Room Count:</strong> {project.roomCount}
                   </p>
                   <p>
                     <strong>Total Project Cost:</strong> ₱
-                    {project.bom?.markedUpCosts?.totalProjectCost?.toLocaleString() || "N/A"}
+                    {project.bom?.markedUpCosts?.totalProjectCost 
+                      ? formatCurrency(project.bom.markedUpCosts.totalProjectCost)
+                      : "N/A"}
                   </p>
                   <p>
-                    <strong>Status:</strong> {project?.status ? project?.status : 'N/A'}
+                    <strong>Status:</strong> {project?.status ? project.status : 'N/A'}
                   </p>
                   <p>
                     <strong>Finished At:</strong> {project?.updatedAt ? new Date(project.updatedAt).toISOString().split('T')[0] : 'N/A'}
@@ -164,7 +170,7 @@ const HouseSliders = () => {
             shape="rounded"
             sx={{
               display: "flex",
-              justifyContent: "center", // This will center the pagination
+              justifyContent: "center",
               marginTop: "20px",
             }}
           />
