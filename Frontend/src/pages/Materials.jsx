@@ -24,7 +24,7 @@ import { useAuthContext } from "../hooks/useAuthContext";
 import Navbar from "../components/Navbar";
 import ConfirmDeleteMaterialModal from "../components/ConfirmDeleteMaterialModal";
 
-const BASE_URL = "http://localhost:4000/api/dropdowns";
+const BASE_URL = "https://csorimv-system-backend.onrender.com/api/dropdowns";
 
 const Materials = () => {
   const [materials, setMaterials] = useState([]);
@@ -69,7 +69,7 @@ const Materials = () => {
     const fetchMaterials = async () => {
       setLoading(true);
       try {
-        const response = await axios.get("http://localhost:4000/api/materials", {
+        const response = await axios.get("https://csorimv-system-backend.onrender.com/api/materials", {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -141,7 +141,7 @@ const Materials = () => {
         ...editedMaterial,
         cost: editedMaterial.cost === "" ? 0 : editedMaterial.cost
       };
-      await axios.patch(`http://localhost:4000/api/materials/${id}`, updatedMaterial, {
+      await axios.patch(`https://csorimv-system-backend.onrender.com/api/materials/${id}`, updatedMaterial, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -160,7 +160,7 @@ const Materials = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:4000/api/materials/${id}`, {
+      await axios.delete(`https://csorimv-system-backend.onrender.com/api/materials/${id}`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -193,7 +193,7 @@ const Materials = () => {
         return;
       }
 
-      const response = await axios.post("http://localhost:4000/api/materials", newMaterial, {
+      const response = await axios.post("https://csorimv-system-backend.onrender.com/api/materials", newMaterial, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },

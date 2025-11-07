@@ -22,7 +22,7 @@ import {
 } from "@mui/material";
 import { FaUserCircle, FaHome, FaBell, FaComments } from "react-icons/fa";
 
-const API_URL = import.meta.env.VITE_LOCAL_URL || 'http://localhost:4000';
+const API_URL = import.meta.env.VITE_LOCAL_URL || 'https://csorimv-system-backend.onrender.com';
 
 const Navbar = () => {
   const { logout } = useLogout();

@@ -23,7 +23,7 @@ import Navbar from '../components/Navbar';
 import AlertModal from '../components/AlertModal';
 import { useAuthContext } from "../hooks/useAuthContext";
 
-const BASE_URL = "http://localhost:4000/api/dropdowns/brands";
+const BASE_URL = "https://csorimv-system-backend.onrender.com/api/dropdowns/brands";
 
 const Brands = () => {
   const { user } = useAuthContext();

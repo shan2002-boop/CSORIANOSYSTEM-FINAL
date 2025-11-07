@@ -3,7 +3,7 @@ import { BsEmojiSmile, BsFillSendFill } from 'react-icons/bs';
 import Picker from 'emoji-picker-react';
 import styles from './ChatComponent.module.css';
 
-const API_URL = import.meta.env.VITE_LOCAL_URL || 'http://localhost:4000';
+const API_URL = import.meta.env.VITE_LOCAL_URL || 'https://csorimv-system-backend.onrender.com';
 
 const ChatComponent = ({ projectName, projectId, user, isChatOpen = false, onClose }) => {
   const [internalIsChatOpen, setInternalIsChatOpen] = useState(isChatOpen);
