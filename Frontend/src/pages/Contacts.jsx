@@ -92,7 +92,7 @@ const Contacts = () => {
           >
             <FaPhoneAlt size={20} />
             <Typography variant="body1" sx={{ color: "#3f5930" }}>
-             +639-1921-34577 <br /> 09192134577
+             +639-6837-11859 <br /> 09683711889
             </Typography>
           </Box>
 
@@ -109,7 +109,7 @@ const Contacts = () => {
           >
             <FaEnvelope size={20} />
             <Typography variant="body1" sx={{ color: "#3f5930" }}>
-              csjconstructionsupply@gmail.com 
+              csorianoconstructionsupply@gmail.com 
             </Typography>
           </Box>
 
@@ -127,7 +127,7 @@ const Contacts = () => {
           >
             <FaMapMarkerAlt size={20} />
             <Typography variant="body1" sx={{ color: "#3f5930" }}>
-              Dungon B Jaro, Iloilo City (Beside ACE Carwash)
+              Diversion Rd, Dungon B, Jaro, Iloilo City
             </Typography>
           </Box>
 
